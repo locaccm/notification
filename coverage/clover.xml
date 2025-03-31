@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1746458124992" clover="3.2.0">
-  <project timestamp="1746458124992" name="All files">
+<coverage generated="1746458286623" clover="3.2.0">
+  <project timestamp="1746458286624" name="All files">
     <metrics statements="10" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1" elements="11" coveredelements="10" complexity="0" loc="10" ncloc="10" packages="1" files="1" classes="1"/>
     <file name="mailer.js" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\mailer.js">
       <metrics statements="10" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>

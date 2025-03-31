@@ -1,38 +1,44 @@
-const request = require("supertest");
-const express = require("express");
-const { sendEmail } = require("../mailer");
+import request from "supertest";
+import express, { Request, Response } from "express";
+import { sendEmail } from "../mailer";
+
 const app = express();
 
 jest.setTimeout(100000);
 
-// Middleware pour gérer les requêtes JSON
 app.use(express.json());
 
-app.post("/send-email", async (req, res) => {
-  const { to, subject, text, html } = req.body;
+app.post("/send-email", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { to, subject, text, html } = req.body;
 
-  if (!to || !subject || (!text && !html)) {
-    return res.status(400).json({ error: "Champs obligatoires manquants" });
-  }
+    if (!to || !subject || (!text && !html)) {
+      res.status(400).json({ error: "Champs obligatoires manquants" });
+      return;
+    }
 
-  // Utilisation de la fonction réelle sendEmail
-  const result = await sendEmail(to, subject, text, html);
+    const result = await sendEmail(to, subject, text, html);
 
-  if (result.success) {
-    res.json({
-      message: "E-mail envoyé avec succès",
-      messageId: result.messageId,
-    });
-  } else {
+    if (result.success) {
+      res.json({
+        message: "E-mail envoyé avec succès",
+        messageId: result.messageId,
+      });
+    } else {
+      res.status(500).json({
+        error: "Erreur envoie E-mail",
+        details: result.error,
+      });
+    }
+  } catch (error: any) {
     res
       .status(500)
-      .json({ error: "Erreur envoie E-mail", details: result.error });
+      .json({ error: "Erreur interne du serveur", details: error.message });
   }
 });
 
 describe("POST /send-email", () => {
   it("devrait envoyer un e-mail avec succès", async () => {
-    // Assure-toi que les variables d'environnement MAIL_HOST, MAIL_USER, MAIL_PASS sont bien définies
     const response = await request(app).post("/send-email").send({
       to: "test@example.com",
       subject: "Test Subject",
@@ -52,7 +58,7 @@ describe("POST /send-email", () => {
 
   it("devrait renvoyer une erreur si des champs requis sont manquants", async () => {
     const response = await request(app).post("/send-email").send({
-      to: "", // Test avec des champs vides
+      to: "",
       subject: "",
       text: "",
       html: "",
