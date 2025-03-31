@@ -4,15 +4,20 @@ const sendEmail = require("./mailer");
 
 const app = express();
 
-const allowedOrigins = process.env.NODE_ENV === 'development' 
-  ? ['http://localhost:3000'] 
-  : ['https://yourdomain.com'];
+app.disable("x-powered-by");
 
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST'], 
-  allowedHeaders: ['Content-Type', 'Authorization'], 
-}));
+const allowedOrigins =
+  process.env.NODE_ENV === "development"
+    ? ["http://localhost:3000"]
+    : ["https://yourdomain.com"];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 app.use(express.json());
 
