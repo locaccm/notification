@@ -13,15 +13,20 @@ export default [
     },
     languageOptions: {
       globals: {
-        module: "readonly", // Déclare module comme global
-        require: "readonly", // Déclare require comme global
-        process: "readonly", // Déclare process comme global
-        console: "readonly", // Déclare console comme global
+        module: "readonly",
+        require: "readonly",
+        process: "readonly",
+        console: "readonly",
+        jest: "readonly",
+        describe: "readonly",
+        beforeAll: "readonly",
+        it: "readonly",
+        expect: "readonly",
       },
     },
     rules: {
       "no-unused-vars": "warn",
-      "no-undef": "warn", // Les variables globales définies par Node.js ne poseront plus de problèmes ici
+      "no-undef": "warn",
       camelcase: "error",
       "prettier/prettier": "error",
       "jsdoc/check-tag-names": "error",
