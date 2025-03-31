@@ -1,17 +1,14 @@
 import js from "@eslint/js";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
-import prettierPlugin from "eslint-plugin-prettier";
-import jsdocPlugin from "eslint-plugin-jsdoc";
-import pluginJs from "@eslint/js";
 import prettier from "eslint-plugin-prettier";
-import prettierConfig from "eslint-config-prettier";
 import jsdoc from "eslint-plugin-jsdoc";
 
 export default [
   pluginJs.configs.recommended,
   prettierConfig,
   {
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
     languageOptions: {
       globals: {
         module: "readonly",
@@ -20,30 +17,28 @@ export default [
       parserOptions: {
         ecmaVersion: 2020,
       },
+      globals: {
+        module: "readonly",
+        require: "readonly",
+        process: "readonly",
+        console: "readonly",
+        jest: "readonly",
+        describe: "readonly",
+        beforeAll: "readonly",
+        afterEach: "readonly",
+        it: "readonly",
+        expect: "readonly",
+      },
     },
     plugins: {
-      prettier,
-      jsdoc,
+      "@typescript-eslint": typescript,
+      prettier: prettier,
+      jsdoc: jsdoc,
     },
     rules: {
       "no-unused-vars": "warn",
       "no-undef": "warn",
-      "camelcase": ["error", { properties: "always" }],
-      prettier: prettier,
-      jsdoc: jsdoc,
-    },
-    languageOptions: {
-      globals: {
-        module: "readonly", // Déclare module comme global
-        require: "readonly", // Déclare require comme global
-        process: "readonly", // Déclare process comme global
-        console: "readonly", // Déclare console comme global
-      },
-    },
-    rules: {
-      "no-unused-vars": "warn",
-      "no-undef": "warn", // Les variables globales définies par Node.js ne poseront plus de problèmes ici
-      camelcase: "error",
+      camelcase: ["error", { properties: "always" }],
       "prettier/prettier": "error",
       "jsdoc/check-tag-names": "error",
       "jsdoc/require-description": "error",
