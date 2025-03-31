@@ -1,16 +1,25 @@
 const express = require("express");
 const cors = require("cors");
-const sendEmail = require("./mailer"); // Import du module mailer
+const sendEmail = require("./mailer");
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = process.env.NODE_ENV === 'development' 
+  ? ['http://localhost:3000'] 
+  : ['https://yourdomain.com'];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST'], 
+  allowedHeaders: ['Content-Type', 'Authorization'], 
+}));
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello depuis le backend Node.js !");
 });
 
-// Route pour envoyer un email
 app.post("/send-email", async (req, res) => {
   const { to, subject, text, html } = req.body;
 
