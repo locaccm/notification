@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1743410063422" clover="3.2.0">
-  <project timestamp="1743410063422" name="All files">
-    <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0" elements="0" coveredelements="0" complexity="0" loc="0" ncloc="0" packages="0" files="0" classes="0"/>
+<coverage generated="1743411014599" clover="3.2.0">
+  <project timestamp="1743411014599" name="All files">
+    <metrics statements="10" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1" elements="11" coveredelements="9" complexity="0" loc="10" ncloc="10" packages="1" files="1" classes="1"/>
+    <file name="mailer.js" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\mailer.js">
+      <metrics statements="10" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="2" count="1" type="stmt"/>
+      <line num="4" count="1" type="stmt"/>
+      <line num="13" count="1" type="stmt"/>
+      <line num="14" count="2" type="stmt"/>
+      <line num="15" count="2" type="stmt"/>
+      <line num="23" count="2" type="stmt"/>
+      <line num="24" count="0" type="stmt"/>
+      <line num="26" count="0" type="stmt"/>
+      <line num="30" count="1" type="stmt"/>
+    </file>
   </project>
 </coverage>
