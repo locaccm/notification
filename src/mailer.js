@@ -10,7 +10,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
 const sendEmail = async (to, subject, text, html) => {
   try {
     const mailOptions = {
