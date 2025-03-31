@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Fonction pour envoyer un email
+
 const sendEmail = async (to, subject, text, html) => {
   try {
     const mailOptions = {
