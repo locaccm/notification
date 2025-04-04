@@ -1,8 +1,15 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 import { sendEmail } from "./mailer"; // Assurez-vous que mailer.ts est bien typé
 
+const swaggerDocument = YAML.load("./swagger.yaml");
+
 const app = express();
+
+// Serve la documentation Swagger à /api-docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Disable the "X-Powered-By" header for security reasons
 app.disable("x-powered-by");
