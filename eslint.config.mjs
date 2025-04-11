@@ -3,6 +3,10 @@ import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import prettierPlugin from "eslint-plugin-prettier";
 import jsdocPlugin from "eslint-plugin-jsdoc";
+import pluginJs from "@eslint/js";
+import prettier from "eslint-plugin-prettier";
+import prettierConfig from "eslint-config-prettier";
+import jsdoc from "eslint-plugin-jsdoc";
 
 export default [
   js.configs.recommended,
@@ -13,6 +17,8 @@ export default [
       parserOptions: {
         ecmaVersion: 2021,
         sourceType: "module",
+      globals: {
+        module: "readonly",
       },
     },
     plugins: {
