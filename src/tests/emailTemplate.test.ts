@@ -1,6 +1,6 @@
 import { generateEmailTemplate } from '../services/emailService';
 
-describe('generateEmailTemplate', () => {
+describe('HTML email content generation and formatting', () => {
   // Mock data to simulate the parameters for the template
   const mockData = {
     recipientName: 'Jean Dupont',

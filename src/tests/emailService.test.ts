@@ -5,7 +5,7 @@ const normalizeHtml = (html: string) => {
     return html.replace(/\s+/g, ' ').trim(); 
 }
 
-describe('generateEmailTemplate', () => {
+describe('HTML email template generation with personalized content', () => {
     it('should generate a valid email template with the provided parameters', () => {
         const params: EmailTemplateParams = {
             recipientName: 'Alice',
