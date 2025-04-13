@@ -46,16 +46,12 @@ export function generateEmailTemplate({ recipientName, customContent }: EmailTem
             </head>
             <body>
                 <div class="container">
-                    <!-- Greeting with recipient's name -->
                     <h1>Bonjour ${recipientName},</h1>
 
-                    <!-- Personalized message content -->
                     <p>${customContent}</p>
 
-                    <!-- Email closing with company name -->
                     <p class="signature">Cordialement,<br>L’équipe Locaccm</p>
 
-                    <!-- Footer with automatic disclaimer and copyright -->
                     <div class="footer">
                         © ${new Date().getFullYear()} Locaccm. Tous droits réservés. <br>
                         Cet e-mail vous a été envoyé automatiquement. Merci de ne pas y répondre.
