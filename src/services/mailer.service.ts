@@ -1,25 +1,16 @@
-import dotenv from "dotenv";
 import nodemailer, { Transporter } from "nodemailer";
-
-// Load environment variables from .env file
-dotenv.config();
+import { EmailModel } from "../models/email.model";
+import "../config/env.config";
 
 // Define the email transporter using environment variables
 const transporter: Transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT), // Ensure the port is a number
+  port: Number(process.env.MAIL_PORT),
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
 });
-
-// Define the response type for the sendEmail function
-interface EmailResponse {
-  success: boolean;
-  messageId?: string;
-  error?: any;
-}
 
 /**
  * Function to send an email using Nodemailer
@@ -29,12 +20,12 @@ interface EmailResponse {
  * @param html - HTML version of the email body (optional)
  * @returns A promise resolving to an EmailResponse object
  */
-export const sendEmail = async (
+export const sendEmailService = async (
   to: string,
   subject: string,
   text?: string,
   html?: string
-): Promise<EmailResponse> => {
+): Promise<EmailModel> => {
   try {
     const mailOptions = {
       from: '"Test Mailtrap" <test@example.com>',
@@ -43,14 +34,9 @@ export const sendEmail = async (
       text,
       html,
     };
-
-    // Send the email using the configured transporter
     const info = await transporter.sendMail(mailOptions);
-
-    // Return success response with message ID
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    // Return error response in case of failure
     return { success: false, error };
   }
 };
