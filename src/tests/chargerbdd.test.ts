@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { chargerBdd } from '../reminder';
+import { chargerBdd } from '../models/locataireModel';
 
 const cheminBdd = path.resolve(__dirname, '../bdd.json');
 
@@ -38,8 +38,8 @@ describe('Database loading from JSON file', () => {
     it("should load tenants from a valid JSON file", () => {
         const contenu = {
             locataires: [
-                { nom: "Alice" },
-                { nom: "Bob" }
+                { email: "Alice@test02.fr" },
+                { email: "Bob@test02.com" }
             ]
         };
         fs.writeFileSync(cheminBdd, JSON.stringify(contenu), 'utf-8');
@@ -48,7 +48,7 @@ describe('Database loading from JSON file', () => {
 
         expect(Array.isArray(result)).toBe(true);
         expect(result).toHaveLength(2);
-        expect(result[0].nom).toBe("Alice");
+        expect(result[0].email).toBe("Alice@test02.fr");
     });
 
     it("should return an empty array if the file is malformed", () => {

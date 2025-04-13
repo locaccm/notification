@@ -1,40 +1,4 @@
-import fs from 'fs';  
-import path from 'path'; 
-
-// Structure of a tenant (data sourced from the JSON file)
-interface Locataire {
-    email: string;
-    date_paiement: string;
-    date_debut_location: string; 
-    date_fin_location: string; 
-}
-
-// Structure of an event associated with a tenant
-interface Evenement {
-    nom: string;
-    date_debut_evenement: string; 
-    date_fin_evenement: string;   
-}
-
-// Function to load the JSON file containing tenant data
-export function chargerBdd() {
-    const cheminBdd = path.resolve(__dirname, '../src/bdd.json'); 
-    try {
-        const data = fs.readFileSync(cheminBdd, 'utf-8'); 
-        const contenu = JSON.parse(data);
-
-        if (!Array.isArray(contenu.locataires)) {
-            throw new Error("The key 'locataires' must contain an array.");
-        }
-
-        console.log("Loaded tenants:", contenu.locataires); 
-        return contenu.locataires;
-
-    } catch (error) {
-        console.error("Error reading the bdd.json file:", error); 
-        return []; 
-    }
-}
+import { Locataire, Evenement } from '../interfaces/locataire';
 
 // Function that schedules a reminder at a specific date
 export function creerRappel(nomEvenement: string, dateSpecifique?: Date): void {
@@ -93,7 +57,7 @@ export function ajouterRappelsPourLocataire(locataire: Locataire): void {
 export function ajouterRappelsPourEvenements(locataire: Locataire & { evenements?: Evenement[] }): void {
     if (!locataire.evenements || locataire.evenements.length === 0) return;
 
-    locataire.evenements.forEach((evenement) => {
+    locataire.evenements.forEach((evenement: Evenement) => {
         const dateDebut = new Date(evenement.date_debut_evenement);
         const rappelDate = new Date(dateDebut.getTime() - 5 * 24 * 60 * 60 * 1000);
 
@@ -103,6 +67,8 @@ export function ajouterRappelsPourEvenements(locataire: Locataire & { evenements
 
 // Checks daily if reminders should be sent
 export function verifierRappelsQuotidiens() {
+    const { chargerBdd } = require('../models/locataireModel');
+
     const logements = chargerBdd(); 
 
     logements.forEach(ajouterRappelsPourLocataire);

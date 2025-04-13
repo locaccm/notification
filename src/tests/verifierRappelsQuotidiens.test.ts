@@ -1,4 +1,4 @@
-import { verifierRappelsQuotidiens } from '../reminder';
+import { verifierRappelsQuotidiens } from '../services/rappelService';
 
 jest.useFakeTimers();
 
