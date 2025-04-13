@@ -1,8 +1,4 @@
-// Define the shape of the parameters accepted by the template generator
-interface EmailTemplateParams {
-    recipientName: string;
-    customContent: string;
-}
+import { EmailTemplateParams } from '../interfaces/emailTemplateParams';
 
 // Generates a personalized HTML email template using the provided parameters
 export function generateEmailTemplate({ recipientName, customContent }: EmailTemplateParams): string {

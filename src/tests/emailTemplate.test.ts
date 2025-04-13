@@ -1,4 +1,4 @@
-import { generateEmailTemplate } from '../emailTemplate';
+import { generateEmailTemplate } from '../services/emailService';
 
 describe('generateEmailTemplate', () => {
   // Mock data to simulate the parameters for the template
