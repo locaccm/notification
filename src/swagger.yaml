@@ -4,9 +4,9 @@ info:
   description: API to send email notifications using Nodemailer.
   version: 1.0.0
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:5000  # Assurez-vous que l'URL correspond à votre configuration
 paths:
-  /send-email:
+  /api/send-email:
     post:
       summary: Send an email
       description: Sends an email with the provided details.
