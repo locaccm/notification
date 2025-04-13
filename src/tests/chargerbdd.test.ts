@@ -9,29 +9,27 @@ const originalConsoleError = console.error;
 let sauvegardeOriginale: string | null = null;
 
 beforeAll(() => {
-    // Backup the original file if it exists
     if (fs.existsSync(cheminBdd)) {
         sauvegardeOriginale = fs.readFileSync(cheminBdd, 'utf-8');
     }
-    // Silence error logs during tests
     console.error = () => {};
 });
 
 afterAll(() => {
-    // Restore the original file after all tests
     if (sauvegardeOriginale !== null) {
         fs.writeFileSync(cheminBdd, sauvegardeOriginale, 'utf-8');
     } else if (fs.existsSync(cheminBdd)) {
-        // If the file didn't exist originally, remove it
         fs.unlinkSync(cheminBdd);
     }
     console.error = originalConsoleError;
 });
 
-describe('chargerBdd (without mock)', () => {
+// --------------------------------------------
+// Test for chargerBdd
+// --------------------------------------------
+describe('Database loading from JSON file', () => {
 
     afterEach(() => {
-        // Clean up after each test (remove the written file)
         if (fs.existsSync(cheminBdd)) {
             fs.unlinkSync(cheminBdd);
         }
