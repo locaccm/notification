@@ -2,7 +2,7 @@ import {
     creerRappel,
     ajouterRappelsPourLocataire,
     ajouterRappelsPourEvenements
-} from '../reminder';
+} from '../services/rappelService';
 
 jest.useFakeTimers();
 
