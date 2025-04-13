@@ -19,7 +19,7 @@ app.get('/api', (req, res) => {
 app.use("/api", emailRoutes);  
 app.use(errorHandler);
 
-describe('Express Server', () => {
+describe('API route handling and response validation', () => {
     it('should respond with status 200 for the /api-docs route', async () => {
         const response = await request(app).get('/api-docs');
         expect(response.status).toBe(301);  

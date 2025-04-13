@@ -4,7 +4,7 @@ import { sendEmailService } from "../services/mailer.service";
 
 jest.mock("../services/mailer.service");
 
-describe("sendEmailController", () => {
+describe("Handling email sending via the email controller", () => {
     let req: Partial<Request>;
     let res: Partial<Response>;
 
