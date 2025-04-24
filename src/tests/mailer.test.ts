@@ -4,8 +4,6 @@ import { sendEmailService } from "../services/mailer.service";
 
 const app = express();
 
-jest.setTimeout(100000);
-
 app.use(express.json());
 
 /**
