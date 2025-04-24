@@ -16,7 +16,7 @@ app.post("/send-email", async (req: Request, res: Response): Promise<void> => {
     const { to, subject, text, html } = req.body;
 
     if (!to || !subject || (!text && !html)) {
-      res.status(400).json({ error: "Champs obligatoires manquants" });
+      res.status(400).json({ error: "Missing required fields" });
       return;
     }
 
@@ -24,24 +24,24 @@ app.post("/send-email", async (req: Request, res: Response): Promise<void> => {
 
     if (result.success) {
       res.json({
-        message: "E-mail envoyé avec succès",
+        message: "Email sent successfully",
         messageId: result.messageId,
       });
     } else {
       res.status(500).json({
-        error: "Erreur envoie E-mail",
+        error: "Failed to send email",
         details: result.error,
       });
     }
   } catch (error: any) {
-    res.status(500).json({ error: "Erreur interne du serveur", details: error.message });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
 /**
- * Unit tests for the /send-email endpoint
+ * Unit tests for the POST /send-email endpoint
  */
-describe("Tests for the POST /send-email", () => {
+describe("POST /send-email endpoint tests", () => {
 
   it("should send an email successfully", async () => {
     const response = await request(app).post("/send-email").send({
@@ -52,11 +52,11 @@ describe("Tests for the POST /send-email", () => {
     });
 
     if (response.status === 200) {
-      expect(response.body.message).toBe("E-mail envoyé avec succès");
+      expect(response.body.message).toBe("Email sent successfully");
       expect(response.body.messageId).toBeDefined();
     } else {
       expect(response.status).toBe(500);
-      expect(response.body.error).toBe("Erreur envoie E-mail");
+      expect(response.body.error).toBe("Failed to send email");
       expect(response.body.details).toBeDefined();
     }
   });
@@ -70,19 +70,19 @@ describe("Tests for the POST /send-email", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe("Champs obligatoires manquants");
+    expect(response.body.error).toBe("Missing required fields");
   });
 
   it("should return an error if Nodemailer fails", async () => {
     const response = await request(app).post("/send-email").send({
-      to: "adresse-invalide", 
-      subject: "Test erreur",
-      text: "Ceci doit échouer",
-      html: "<p>Erreur attendue</p>",
+      to: "invalid-address", 
+      subject: "Test Error",
+      text: "This should fail",
+      html: "<p>Expected error</p>",
     });
   
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Erreur envoie E-mail");
+    expect(response.body.error).toBe("Failed to send email");
     expect(response.body.details).toBeDefined();
   });
 });
