@@ -8,9 +8,9 @@ describe('Integration test for email template rendering and logging', () => {
 
         const loggedHtml = consoleSpy.mock.calls[0][0];
 
-        expect(loggedHtml).toContain('Bonjour Alice');
-        expect(loggedHtml).toContain('Ceci est une notification personnalisée.');
-        expect(loggedHtml).toContain('L’équipe Locaccm');
+        expect(loggedHtml).toContain('Hello Alice');
+        expect(loggedHtml).toContain('This is a personalized notification.');
+        expect(loggedHtml).toContain('The Locaccm team');
 
         jest.resetModules();
         consoleSpy.mockRestore();

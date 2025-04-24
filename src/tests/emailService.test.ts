@@ -9,7 +9,7 @@ describe('HTML email template generation with personalized content', () => {
     it('should generate a valid email template with the provided parameters', () => {
         const params: EmailTemplateParams = {
             recipientName: 'Alice',
-            customContent: 'Ceci est une notification personnalisée.',
+            customContent: 'This is a personalized notification.',
         };
 
         const result = generateEmailTemplate(params);
@@ -58,12 +58,12 @@ describe('HTML email template generation with personalized content', () => {
                 </head>
                 <body>
                     <div class="container">
-                        <h1>Bonjour Alice,</h1>
-                        <p>Ceci est une notification personnalisée.</p>
-                        <p class="signature">Cordialement,<br>L’équipe Locaccm</p>
+                        <h1>Hello Alice,</h1>
+                        <p>This is a personalized notification.</p>
+                        <p class="signature">Sincerely,<br>The Locaccm team</p>
                         <div class="footer">
-                            © ${new Date().getFullYear()} Locaccm. Tous droits réservés. <br>
-                            Cet e-mail vous a été envoyé automatiquement. Merci de ne pas y répondre.
+                            © ${new Date().getFullYear()} Locaccm. All rights reserved. <br>
+                            This email was sent to you automatically. Please do not reply.
                         </div>
                     </div>
                 </body>

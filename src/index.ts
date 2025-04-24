@@ -3,7 +3,7 @@ import { EmailTemplateParams } from './interfaces/emailTemplateParams';
 
 const params: EmailTemplateParams = {
     recipientName: 'Alice',
-    customContent: 'Ceci est une notification personnalisée.',
+    customContent: 'This is a personalized notification.',
 };
 
 const emailHtml = generateEmailTemplate(params);
