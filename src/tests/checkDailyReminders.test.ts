@@ -1,15 +1,14 @@
-import { verifierRappelsQuotidiens } from '../services/rappelService';
+import { checkDailyReminders } from '../services/reminderService';
 
 jest.useFakeTimers();
 
 // --------------------------------------------
-// Test for verifierRappelsQuotidiens
+// Test for checkDailyReminders
 // --------------------------------------------
 describe('Daily reminder verification scheduling', () => {
-    it('schedules the call every 24h', () => {
-        verifierRappelsQuotidiens();
+    it('schedules the call every 24 hours', () => {
+        checkDailyReminders();
 
         jest.advanceTimersByTime(86400000); 
     });
 });
-

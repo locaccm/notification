@@ -6,6 +6,7 @@ import { swaggerServe, swaggerSetup } from "./config/swagger.config";
 import { generateEmailTemplate } from './services/emailService';
 import { EmailTemplateParams } from './interfaces/emailTemplateParams';
 import "./config/env.config";
+import { checkDailyReminders } from './services/reminderService';
 
 const app = express();
 
@@ -27,4 +28,7 @@ export const params: EmailTemplateParams = {
     customContent: 'This is a personalized notification.',
 };
 
-generateEmailTemplate(params);
+const emailHtml = generateEmailTemplate(params);
+console.log(emailHtml);
+
+checkDailyReminders();
