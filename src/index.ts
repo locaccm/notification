@@ -1,3 +1,3 @@
-import { verifierRappelsQuotidiens } from './services/rappelService';
+import { checkDailyReminders } from './services/reminderService';
 
-verifierRappelsQuotidiens();
+checkDailyReminders();

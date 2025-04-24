@@ -1,8 +1,8 @@
 import {
-    creerRappel,
-    ajouterRappelsPourLocataire,
-    ajouterRappelsPourEvenements
-} from '../services/rappelService';
+    createReminder,
+    addRemindersForTenant,
+    addRemindersForEvents
+} from '../services/reminderService';
 
 jest.useFakeTimers();
 
@@ -20,40 +20,39 @@ afterEach(() => {
 });
 
 // --------------------------------------------
-// Tests for the creerRappel function
+// Tests for the createReminder function
 // --------------------------------------------
 describe('Reminder creation logic based on event dates', () => {
-    it('should display an error if dateSpecifique is not provided', () => {
-        creerRappel('Reminder without date');
+    it('should display an error if specificDate is not provided', () => {
+        createReminder('Reminder without date');
     
-        expect(spyError).toHaveBeenCalledWith("Error: Please provide 'dateSpecifique'.");
+        expect(spyError).toHaveBeenCalledWith("Error: Please provide 'specificDate'.");
     });
     
     it('should create a reminder for a future event and mark as "Do not send"', () => {
         const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-        creerRappel('End of lease for locataire@example.com', futureDate);
+        createReminder('End of lease for tenant@example.com', futureDate);
 
         jest.runAllTimers();
 
         expect(spyLog).toHaveBeenCalledWith(
-            expect.stringContaining("📅 Event: End of lease for locataire@example.com - Reminder scheduled in 2 days. ➤ Do not send")
+            expect.stringContaining("📅 Event: End of lease for tenant@example.com - Reminder scheduled in 2 days. ➤ Do not send")
         );
     });
 
     it('does not create a reminder if the date is in the past', () => {
         const pastDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-        creerRappel('Past event', pastDate);
-
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining("Reminder ignored"));
+        createReminder('Past event', pastDate);
+        expect(spyError).toHaveBeenCalledWith("Error: The event date is in the past or today. No reminder can be created.");
     });
 
     it('does not create a reminder if the date is today', () => {
         const todayDate = new Date(); 
         todayDate.setHours(0, 0, 0, 0); 
     
-        creerRappel('Event today', todayDate);
+        createReminder('Event today', todayDate);
     
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining("Reminder ignored"));
+        expect(spyError).toHaveBeenCalledWith("Error: The event date is in the past or today. No reminder can be created.");
     });
     
 
@@ -61,21 +60,21 @@ describe('Reminder creation logic based on event dates', () => {
         const futureDateDifferentMonth = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
         futureDateDifferentMonth.setMonth(futureDateDifferentMonth.getMonth() + 1); 
 
-        creerRappel('Event in a different month', futureDateDifferentMonth);
+        createReminder('Event in a different month', futureDateDifferentMonth);
 
         jest.runAllTimers();
 
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining("Reminder ignored"));
+        expect(spyError).toHaveBeenCalledWith(`Error: The event date does not match the current month or year. Reminder not created.`);    
     });
 
     it('should create a reminder only when the event is exactly 5 days away', () => {
         const dateFiveDaysAway = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); 
-        creerRappel('Event in 5 days', dateFiveDaysAway);
+        createReminder('Event in 5 days', dateFiveDaysAway);
 
         jest.runAllTimers();
 
         expect(spyLog).toHaveBeenCalledWith(
-            expect.stringContaining("🔔 Rappel: Event in 5 days - prévue dans 5 jours.")
+            expect.stringContaining("🔔 Reminder: Event in 5 days - scheduled in 5 days.")
         );
     });
 
@@ -83,67 +82,63 @@ describe('Reminder creation logic based on event dates', () => {
         const dateMoreThanFiveDaysAway = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000); 
         const dateLessThanFiveDaysAway = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000); 
 
-        creerRappel('Event in 6 days', dateMoreThanFiveDaysAway);
-        creerRappel('Event in 4 days', dateLessThanFiveDaysAway);
+        createReminder('Event in 6 days', dateMoreThanFiveDaysAway);
+        createReminder('Event in 4 days', dateLessThanFiveDaysAway);
 
         jest.runAllTimers();
 
-        expect(spyLog).not.toHaveBeenCalledWith(expect.stringContaining("🔔 Rappel"));
+        expect(spyLog).not.toHaveBeenCalledWith(expect.stringContaining("🔔 Reminder"));
     });
 });
 
 // --------------------------------------------
 // Helper function to generate a tenant for tests
-// Dates are chosen such that the reminders (calculated in creerRappel)
-// will be in the future for the payment reminder (datePaiement - 5 days)
-// and for the end of lease (dateFin - 1 day).
-function genererLocataireTest() {
+// Dates are chosen such that the reminders (calculated in createReminder)
+// will be in the future for the payment reminder (paymentDate - 5 days)
+// and for the end of lease (leaseEndDate - 1 day).
+function generateTestTenant() {
     const now = new Date();
-    const datePaiement = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
-    const dateDebut = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
-    const dateFin = new Date(now.getTime() + 20 * 24 * 60 * 60 * 1000);
+    const paymentDate = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const leaseStartDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const leaseEndDate = new Date(now.getTime() + 50 * 24 * 60 * 60 * 1000);
 
-    const dateDebutEvenement = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
-    const dateFinEvenement = new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000);
+    const eventStartDate = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const eventEndDate = new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000);
     return {
         email: "test@example.com",
-        date_paiement: datePaiement.toISOString(),
-        date_debut_location: dateDebut.toISOString(),
-        date_fin_location: dateFin.toISOString(),
-        evenements: [{
-            nom: "Réparation de plomberie",
-            date_debut_evenement: dateDebutEvenement.toISOString(),
-            date_fin_evenement: dateFinEvenement.toISOString()
+        payment_date: paymentDate.toISOString(),
+        lease_start_date: leaseStartDate.toISOString(),
+        lease_end_date: leaseEndDate.toISOString(),
+        events: [{
+            name: "Plumbing repair",
+            event_start_date: eventStartDate.toISOString(),
+            event_end_date: eventEndDate.toISOString()
         }]        
     };
 }
 
 // --------------------------------------------
-// Test for ajouterRappelsPourLocataire
+// Test for addRemindersForTenant
 // --------------------------------------------
 describe('Reminder generation for tenant and tenant events', () => {
-    it('should call creerRappel twice for a tenant', () => {
-        const locataire = genererLocataireTest();
+    it('should call createReminder twice for a tenant', () => {
+        const tenant = generateTestTenant();
 
-        ajouterRappelsPourLocataire(locataire);
+        addRemindersForTenant(tenant);
 
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`📅 Event: Rappel de paiement pour ${locataire.email} - Reminder scheduled in 5 days. ➤ To send`));
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`🔔 Rappel: Rappel de paiement pour ${locataire.email} - prévue dans 5 jours.`));
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`📅 Event: Fin de location pour test@example.com - Reminder scheduled in 15 days. ➤ Do not send`));
+        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`📅 Event: Payment reminder for ${tenant.email} - Reminder scheduled in 5 days. ➤ To send`));
+        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`🔔 Reminder: Payment reminder for ${tenant.email} - scheduled in 5 days.`));
+        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`📅 Event: Event ${tenant.events[0].name} for ${tenant.email} - Reminder scheduled in 5 days. ➤ To send`));
     });
 
-    it('should call creerRappel for each event of the tenant', () => {
-        const locataire = genererLocataireTest();
+    it('should call createReminder for each event of the tenant', () => {
+        const tenant = generateTestTenant();
 
-        ajouterRappelsPourEvenements(locataire);
+        addRemindersForEvents(tenant);
 
         expect(spyLog).toHaveBeenCalledTimes(2); 
 
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`📅 Event: Événement Réparation de plomberie pour ${locataire.email} - Reminder scheduled in 5 days. ➤ To send`));
-        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`🔔 Rappel: Événement Réparation de plomberie pour ${locataire.email} - prévue dans 5 jours.`));
+        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`📅 Event: Event Plumbing repair for ${tenant.email} - Reminder scheduled in 5 days. ➤ To send`));
+        expect(spyLog).toHaveBeenCalledWith(expect.stringContaining(`🔔 Reminder: Event Plumbing repair for ${tenant.email} - scheduled in 5 days.`));
     });
 });
-
-
-
-
