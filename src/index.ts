@@ -10,9 +10,9 @@ const app = express();
 app.use(cors);
 app.use(express.json());
 
-app.use("/api-docs", swaggerServe, swaggerSetup);
+app.use("/mail-docs", swaggerServe, swaggerSetup);
 
-app.use("/api", emailRoutes);
+app.use("/mail", emailRoutes);
 
 app.use(errorHandler);
 
