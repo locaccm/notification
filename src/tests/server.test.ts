@@ -10,18 +10,18 @@ const app = express();
 app.use(cors);
 app.use(express.json());
 
-app.use("/api-docs", swaggerServe, swaggerSetup);
+app.use("/mail-docs", swaggerServe, swaggerSetup);
 
-app.get('/api', (req, res) => {
+app.get('/mail', (req, res) => {
     res.status(200).json({ message: 'API is working' });
 });
 
-app.use("/api", emailRoutes);  
+app.use("/mail", emailRoutes);  
 app.use(errorHandler);
 
 describe('API route handling and response validation', () => {
-    it('should respond with status 200 for the /api-docs route', async () => {
-        const response = await request(app).get('/api-docs');
+    it('should respond with status 200 for the mail-docs route', async () => {
+        const response = await request(app).get('/mail-docs');
         expect(response.status).toBe(301);  
     });
 
@@ -30,15 +30,15 @@ describe('API route handling and response validation', () => {
         expect(response.status).toBe(404);
     });
 
-    it('should respond with status 200 for the /api route', async () => {
-        const response = await request(app).get('/api');
+    it('should respond with status 200 for the mail route', async () => {
+        const response = await request(app).get('/mail');
         expect(response.status).toBe(200); 
         expect(response.body.message).toBe('API is working');  
     });
 
-    it('should handle invalid JSON in /api/send-email', async () => {
+    it('should handle invalid JSON in mail/send-email', async () => {
         const response = await request(app)
-        .post('/api/send-email') 
+        .post('/mail/send-email') 
         .set('Content-Type', 'application/json')
         .send({ invalidField: "test" }); 
 
