@@ -4,7 +4,7 @@ import cors, { CorsOptions } from "cors";
 const allowedOrigins: string[] =
   process.env.NODE_ENV === "development"
     ? ["http://localhost:3000"]
-    : ["https://yourdomain.com"]; 
+    : ["https://yourdomain.com"];
 
 // CORS configuration options
 const corsOptions: CorsOptions = {

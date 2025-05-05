@@ -32,7 +32,9 @@ app.post("/send-email", async (req: Request, res: Response): Promise<void> => {
       });
     }
   } catch (error: any) {
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
 
@@ -40,7 +42,6 @@ app.post("/send-email", async (req: Request, res: Response): Promise<void> => {
  * Unit tests for the POST /send-email endpoint
  */
 describe("POST /send-email endpoint tests", () => {
-
   it("should send an email successfully", async () => {
     const response = await request(app).post("/send-email").send({
       to: "test@example.com",
@@ -73,12 +74,12 @@ describe("POST /send-email endpoint tests", () => {
 
   it("should return an error if Nodemailer fails", async () => {
     const response = await request(app).post("/send-email").send({
-      to: "invalid-address", 
+      to: "invalid-address",
       subject: "Test Error",
       text: "This should fail",
       html: "<p>Expected error</p>",
     });
-  
+
     expect(response.status).toBe(500);
     expect(response.body.error).toBe("Failed to send email");
     expect(response.body.details).toBeDefined();

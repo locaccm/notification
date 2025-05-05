@@ -24,7 +24,7 @@ export const sendEmailService = async (
   to: string,
   subject: string,
   text?: string,
-  html?: string
+  html?: string,
 ): Promise<EmailModel> => {
   try {
     const mailOptions = {

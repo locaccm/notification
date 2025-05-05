@@ -2,7 +2,10 @@ import { Request, Response } from "express";
 import { sendEmailService } from "../services/mailer.service";
 
 // Controller to handle email sending requests
-export const sendEmailController = async (req: Request, res: Response): Promise<void> => {
+export const sendEmailController = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { to, subject, text, html } = req.body;
 
   if (!to || !subject || (!text && !html)) {
@@ -19,9 +22,13 @@ export const sendEmailController = async (req: Request, res: Response): Promise<
         messageId: result.messageId,
       });
     } else {
-      res.status(500).json({ error: "Email sending failed", details: result.error });
+      res
+        .status(500)
+        .json({ error: "Email sending failed", details: result.error });
     }
   } catch (error: any) {
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 };

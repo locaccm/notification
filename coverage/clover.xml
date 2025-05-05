@@ -1,28 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD
-<coverage generated="1746458286623" clover="3.2.0">
-  <project timestamp="1746458286624" name="All files">
-    <metrics statements="10" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1" elements="11" coveredelements="10" complexity="0" loc="10" ncloc="10" packages="1" files="1" classes="1"/>
-    <file name="mailer.js" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\mailer.js">
-      <metrics statements="10" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-=======
-<coverage generated="1743426478944" clover="3.2.0">
-  <project timestamp="1743426478944" name="All files">
-    <metrics statements="11" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2" elements="13" coveredelements="12" complexity="0" loc="11" ncloc="11" packages="1" files="1" classes="1"/>
-    <file name="mailer.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\mailer.ts">
-      <metrics statements="11" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
->>>>>>> e3eec5b (chore: convert JS code to TypeScript)
-      <line num="1" count="1" type="stmt"/>
-      <line num="2" count="1" type="stmt"/>
-      <line num="5" count="1" type="stmt"/>
-      <line num="8" count="1" type="stmt"/>
-      <line num="32" count="1" type="stmt"/>
-      <line num="37" count="1" type="stmt"/>
-      <line num="38" count="1" type="stmt"/>
-      <line num="39" count="1" type="stmt"/>
-      <line num="48" count="1" type="stmt"/>
-      <line num="51" count="0" type="stmt"/>
-      <line num="54" count="1" type="stmt"/>
-    </file>
+<coverage generated="1746458902841" clover="3.2.0">
+  <project timestamp="1746458902842" name="All files">
+    <metrics statements="43" coveredstatements="43" conditionals="9" coveredconditionals="7" methods="5" coveredmethods="5" elements="57" coveredelements="55" complexity="0" loc="43" ncloc="43" packages="5" files="7" classes="7"/>
+    <package name="config">
+      <metrics statements="12" coveredstatements="12" conditionals="2" coveredconditionals="1" methods="0" coveredmethods="0"/>
+      <file name="cors.config.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\config\cors.config.ts">
+        <metrics statements="4" coveredstatements="4" conditionals="2" coveredconditionals="1" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="5" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+      </file>
+      <file name="env.config.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\config\env.config.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+      </file>
+      <file name="swagger.config.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\config\swagger.config.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="controllers">
+      <metrics statements="13" coveredstatements="13" conditionals="7" coveredconditionals="6" methods="2" coveredmethods="2"/>
+      <file name="email.controller.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\controllers\email.controller.ts">
+        <metrics statements="13" coveredstatements="13" conditionals="7" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="8" count="5" type="stmt"/>
+        <line num="9" count="5" type="stmt"/>
+        <line num="11" count="5" type="cond" truecount="4" falsecount="1"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="16" count="3" type="stmt"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="19" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="middlewares">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="errorHandler.middleware.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\middlewares\errorHandler.middleware.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="routes">
+      <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="email.routes.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\routes\email.routes.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="services">
+      <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="mailer.service.ts" path="C:\Users\Dylan\Documents\INSSET\MasterCCM\notification\src\services\mailer.service.ts">
+        <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+      </file>
+    </package>
   </project>
 </coverage>
