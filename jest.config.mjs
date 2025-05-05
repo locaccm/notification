@@ -1,15 +1,8 @@
-module.exports = {
+/** @type {import('ts-jest').JestConfigWithTsJest} **/
+export default {
   preset: "ts-jest",
   testEnvironment: "node",
   transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest",
+    "^.+\\.tsx?$": ["ts-jest", {}],
   },
-  moduleFileExtensions: ["ts", "tsx", "js", "json"],
-  coverageDirectory: "./coverage",
-  collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "!src/**/*.d.ts",
-    "!src/tests/**/*",
-  ],
-  coveragePathIgnorePatterns: ["/node_modules/", "<rootDir>/src/index.ts"],
 };

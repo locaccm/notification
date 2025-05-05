@@ -1,3 +1,3 @@
-import { checkDailyReminders } from './services/reminderService';
+import { checkDailyReminders } from "./services/reminderService";
 
 checkDailyReminders();
