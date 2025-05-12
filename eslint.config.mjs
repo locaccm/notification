@@ -1,29 +1,30 @@
-import js from "@eslint/js";
-import typescript from "@typescript-eslint/eslint-plugin";
-import typescriptParser from "@typescript-eslint/parser";
-import prettierPlugin from "eslint-plugin-prettier";
-import jsdocPlugin from "eslint-plugin-jsdoc";
+// eslint.config.js
+import pluginJs from "@eslint/js";
+import prettier from "eslint-plugin-prettier";
+import prettierConfig from "eslint-config-prettier";
+import jsdoc from "eslint-plugin-jsdoc";
 
 export default [
-  js.configs.recommended,
+  pluginJs.configs.recommended,
+  prettierConfig,
   {
-    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
-      parser: typescriptParser,
+      globals: {
+        module: "readonly",
+        require: "readonly",
+      },
       parserOptions: {
-        ecmaVersion: 2021,
-        sourceType: "module",
+        ecmaVersion: 2020,
       },
     },
     plugins: {
-      "@typescript-eslint": typescript,
-      prettier: prettierPlugin,
-      jsdoc: jsdocPlugin,
+      prettier,
+      jsdoc,
     },
     rules: {
       "no-unused-vars": "warn",
       "no-undef": "warn",
-      "camelcase": ["error", { properties: "always" }],
+      camelcase: "error",
       "prettier/prettier": "error",
       "jsdoc/check-tag-names": "error",
       "jsdoc/require-description": "error",
