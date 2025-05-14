@@ -10,6 +10,10 @@ export default [
     languageOptions: {
       globals: {
         module: "readonly",
+        require: "readonly",
+      },
+      parserOptions: {
+        ecmaVersion: 2020,
       },
     },
     plugins: {
