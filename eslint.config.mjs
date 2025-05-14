@@ -46,4 +46,13 @@ export default [
       "jsdoc/require-description": "warn",
     },
   },
+  {
+    files: ["**/*.test.ts", "**/*.spec.ts"],
+    languageOptions: {
+      globals: {
+        test: "readonly",
+        expect: "readonly",
+      },
+    },
+  },
 ];
