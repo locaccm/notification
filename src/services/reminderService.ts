@@ -1,10 +1,9 @@
 import { Tenant, Event } from "../interfaces/Tenant";
 
 // Function that schedules a reminder at a specific date
-export function createReminder(eventName: string, specificDate?: Date): void {
+export function createReminder(eventName: string, specificDate?: Date): string | null {
   if (!specificDate) {
-    console.error("Error: Please provide 'specificDate'.");
-    return;
+    return "Error: Please provide 'specificDate'.";
   }
 
   const now = new Date();
@@ -12,77 +11,63 @@ export function createReminder(eventName: string, specificDate?: Date): void {
   const diffInMs = targetTime - now.getTime();
 
   if (diffInMs <= 0) {
-    console.error(
-      `Error: The event date is in the past or today. No reminder can be created.`,
-    );
-    return;
+    return "Error: The event date is in the past or today. No reminder can be created.";
   }
 
-  const isSameDay = specificDate.toDateString() === now.toDateString();
-  let daysRemaining = isSameDay
-    ? 0
-    : Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-  daysRemaining = daysRemaining > 0 ? daysRemaining : 0;
+  const daysRemaining = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-  const status = daysRemaining === 5 ? "To send" : "Do not send";
+  if (daysRemaining !== 5) {
+    return `📅 Event: ${eventName} - Reminder not needed now (scheduled in ${daysRemaining} days).`;
+  }
 
-  const targetMonth = specificDate.getMonth();
-  const targetYear = specificDate.getFullYear();
-  const currentMonth = now.getMonth();
+  const eventYear = specificDate.getFullYear();
   const currentYear = now.getFullYear();
 
-  if (targetMonth !== currentMonth || targetYear !== currentYear) {
-    console.error(
-      `Error: The event date does not match the current month or year. Reminder not created.`,
-    );
-    return;
+  if (eventYear !== currentYear && eventYear !== currentYear + 1) {
+    return "Error: The event year does not match the current or next year. Reminder not created.";
   }
 
-  console.log(
-    `📅 Event: ${eventName} - Reminder scheduled in ${daysRemaining} days. ➤ ${status}`,
-  );
-
-  if (status === "To send") {
-    console.log(
-      `🔔 Reminder: ${eventName} - scheduled in ${daysRemaining} days.`,
-    );
-  }
+  return `🔔 Reminder: ${eventName} - scheduled in ${daysRemaining} days.`;
 }
 
 // Adds reminders for important events related to a tenant
-export function addRemindersForTenant(tenant: Tenant): void {
+export function addRemindersForTenant(tenant: Tenant): string[] {
+  const results: string[] = [];
+
   const paymentDate = new Date(tenant.payment_date);
-  const paymentReminderDate = new Date(
-    paymentDate.getTime() - 5 * 24 * 60 * 60 * 1000,
+  const paymentReminderDate = new Date(paymentDate.getTime() - 5 * 24 * 60 * 60 * 1000);
+  const paymentReminder = createReminder(
+    `Payment reminder for ${tenant.email}`,
+    paymentReminderDate,
   );
-  createReminder(`Payment reminder for ${tenant.email}`, paymentReminderDate);
+  if (paymentReminder) results.push(paymentReminder);
 
   const leaseEndDate = new Date(tenant.lease_end_date);
-  const leaseEndReminderDate = new Date(
-    leaseEndDate.getTime() - 5 * 24 * 60 * 60 * 1000,
-  );
-  createReminder(
+  const leaseEndReminderDate = new Date(leaseEndDate.getTime() - 5 * 24 * 60 * 60 * 1000);
+  const leaseEndReminder = createReminder(
     `Lease end reminder for ${tenant.email}`,
     leaseEndReminderDate,
   );
+  if (leaseEndReminder) results.push(leaseEndReminder);
 
-  addRemindersForEvents(tenant);
+  return results;
 }
 
 // Function to manage reminders for specific events of the tenant
-export function addRemindersForEvents(
-  tenant: Tenant & { events?: Event[] },
-): void {
-  if (!tenant.events || tenant.events.length === 0) return;
+export function addRemindersForEvents(tenant: Tenant & { events: Event[] }): string[] {
+  const results: string[] = [];
 
   tenant.events.forEach((event: Event) => {
     const startDate = new Date(event.event_start_date);
-    const reminderDate = new Date(
-      startDate.getTime() - 5 * 24 * 60 * 60 * 1000,
+    const reminderDate = new Date(startDate.getTime() - 5 * 24 * 60 * 60 * 1000);
+    const eventReminder = createReminder(
+      `Event ${event.name} for ${tenant.email}`,
+      reminderDate,
     );
-
-    createReminder(`Event ${event.name} for ${tenant.email}`, reminderDate);
+    if (eventReminder) results.push(eventReminder);
   });
+
+  return results;
 }
 
 // Checks daily if reminders should be sent
@@ -91,7 +76,24 @@ export function checkDailyReminders() {
 
   const tenants = loadDatabase();
 
-  tenants.forEach(addRemindersForTenant);
+  tenants.forEach((tenant: Tenant & { events: Event[] }) => {
+    const tenantReminders = addRemindersForTenant(tenant);
+    tenantReminders.forEach(reminder => {
+      // Remplacer par votre logique d'envoi de rappels
+      sendReminder(reminder);
+    });
 
+    const eventReminders = addRemindersForEvents(tenant);
+    eventReminders.forEach(reminder => {
+      // Remplacer par votre logique d'envoi de rappels
+      sendReminder(reminder);
+    });
+  });
+
+  // Vérifie les rappels tous les 24h (86400000 ms)
   setTimeout(checkDailyReminders, 86400000);
+}
+
+export function sendReminder(reminder: string) {
+  reminder;
 }
