@@ -5,8 +5,8 @@ import { errorHandler } from "./middlewares/errorHandler.middleware";
 import { swaggerServe, swaggerSetup } from "./config/swagger.config";
 import { generateEmailTemplate } from './services/emailService';
 import { EmailTemplateParams } from './interfaces/emailTemplateParams';
+import {checkDailyReminders} from './services/reminderService'
 import "./config/env.config";
-import { checkDailyReminders } from './services/reminderService';
 
 const app = express();
 
@@ -22,12 +22,12 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT);
 
-const params: EmailTemplateParams = {
+
+export const params: EmailTemplateParams = {
     recipientName: 'Alice',
     customContent: 'This is a personalized notification.',
 };
 
-const emailHtml = generateEmailTemplate(params);
-console.log(emailHtml);
+generateEmailTemplate(params);
 
 checkDailyReminders();
