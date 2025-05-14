@@ -22,8 +22,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT);
 
-
-export const params: EmailTemplateParams = {
+const params: EmailTemplateParams = {
     recipientName: 'Alice',
     customContent: 'This is a personalized notification.',
 };
