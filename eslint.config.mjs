@@ -1,4 +1,3 @@
-// eslint.config.js
 import pluginJs from "@eslint/js";
 import prettier from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
@@ -8,18 +7,25 @@ export default [
   pluginJs.configs.recommended,
   prettierConfig,
   {
+    plugins: {
+      prettier: prettier,
+      jsdoc: jsdoc,
+    },
     languageOptions: {
-      globals: {
-        module: "readonly",
-        require: "readonly",
-      },
       parserOptions: {
         ecmaVersion: 2020,
       },
-    },
-    plugins: {
-      prettier,
-      jsdoc,
+      globals: {
+        module: "readonly",
+        require: "readonly",
+        process: "readonly",
+        console: "readonly",
+        jest: "readonly",
+        describe: "readonly",
+        beforeAll: "readonly",
+        it: "readonly",
+        expect: "readonly",
+      },
     },
     rules: {
       "no-unused-vars": "warn",
