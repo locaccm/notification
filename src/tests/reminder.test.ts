@@ -19,17 +19,22 @@ describe("Reminder creation logic based on event dates", () => {
   it('should create a reminder for a future event and mark as "Do not send"', () => {
     const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 
-    const reminderMessage = createReminder("End of lease for tenant@example.com", futureDate);
+    const reminderMessage = createReminder(
+      "End of lease for tenant@example.com",
+      futureDate,
+    );
 
     expect(reminderMessage).toContain(
-      "📅 Event: End of lease for tenant@example.com - Reminder not needed now (scheduled in 2 days)."
+      "📅 Event: End of lease for tenant@example.com - Reminder not needed now (scheduled in 2 days).",
     );
   });
 
   it("does not create a reminder if the date is in the past", () => {
     const pastDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     const result = createReminder("Past event", pastDate);
-    expect(result).toBe("Error: The event date is in the past or today. No reminder can be created.");
+    expect(result).toBe(
+      "Error: The event date is in the past or today. No reminder can be created.",
+    );
   });
 
   it("does not create a reminder if the date is today", () => {
@@ -38,17 +43,32 @@ describe("Reminder creation logic based on event dates", () => {
 
     const result = createReminder("Event today", todayDate);
 
-    expect(result).toBe("Error: The event date is in the past or today. No reminder can be created.");
+    expect(result).toBe(
+      "Error: The event date is in the past or today. No reminder can be created.",
+    );
+  });
+
+  it("should return error if date in past or today", () => {
+    const pastDate = new Date(Date.now() - 1000);
+    expect(createReminder("Test", pastDate)).toBe(
+      "Error: The event date is in the past or today. No reminder can be created.",
+    );
   });
 
   it("should create a reminder even if the event is in the next year (e.g., 31 Dec for 4 Jan next year)", () => {
-    const futureDateNextYear = new Date("2025-12-31T00:00:00");
-    futureDateNextYear.setFullYear(2025);  // 31 Dec 2025, event on 4 Jan 2026.
+    const now = new Date();
+    const futureDateNextYear = new Date("2026-01-04T00:00:00");
 
-    const reminderMessage = createReminder("New Year's event", futureDateNextYear);
+    const diffInMs = futureDateNextYear.getTime() - now.getTime();
+    const daysRemaining = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    const reminderMessage = createReminder(
+      "New Year's event",
+      futureDateNextYear,
+    );
 
     expect(reminderMessage).toContain(
-      "📅 Event: New Year's event - Reminder not needed now (scheduled in 230 days)."
+      `📅 Event: New Year's event - Reminder not needed now (scheduled in ${daysRemaining} days).`,
     );
   });
 
@@ -57,7 +77,7 @@ describe("Reminder creation logic based on event dates", () => {
     const reminderMessage = createReminder("Event in 5 days", dateFiveDaysAway);
 
     expect(reminderMessage).toContain(
-      "🔔 Reminder: Event in 5 days - scheduled in 5 days."
+      "🔔 Reminder: Event in 5 days - scheduled in 5 days.",
     );
   });
 
@@ -90,14 +110,14 @@ function generateTestTenant() {
   const eventEndDate = new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000);
   return {
     email: "test@example.com",
-    payment_date: paymentDate.toISOString(),
-    lease_start_date: leaseStartDate.toISOString(),
-    lease_end_date: leaseEndDate.toISOString(),
+    paymentDate: paymentDate.toISOString(),
+    leaseStartDate: leaseStartDate.toISOString(),
+    leaseEndDate: leaseEndDate.toISOString(),
     events: [
       {
         name: "Plumbing repair",
-        event_start_date: eventStartDate.toISOString(),
-        event_end_date: eventEndDate.toISOString(),
+        eventStartDate: eventStartDate.toISOString(),
+        eventEndDate: eventEndDate.toISOString(),
       },
     ],
   };
@@ -114,7 +134,7 @@ describe("Reminder generation for tenant and tenant events", () => {
 
     expect(result).toEqual([
       "🔔 Reminder: Payment reminder for test@example.com - scheduled in 5 days.",
-      "📅 Event: Lease end reminder for test@example.com - Reminder not needed now (scheduled in 45 days)."
+      "📅 Event: Lease end reminder for test@example.com - Reminder not needed now (scheduled in 45 days).",
     ]);
   });
 
@@ -124,7 +144,7 @@ describe("Reminder generation for tenant and tenant events", () => {
     const result = addRemindersForEvents(tenant);
 
     expect(result).toEqual([
-      "🔔 Reminder: Event Plumbing repair for test@example.com - scheduled in 5 days."
+      "🔔 Reminder: Event Plumbing repair for test@example.com - scheduled in 5 days.",
     ]);
   });
 });

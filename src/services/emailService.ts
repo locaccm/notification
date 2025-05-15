@@ -1,8 +1,11 @@
-import { EmailTemplateParams } from '../interfaces/emailTemplateParams';
+import { EmailTemplateParams } from "../interfaces/emailTemplateParams";
 
 // Generates a personalized HTML email template using the provided parameters
-export function generateEmailTemplate({ recipientName, customContent }: EmailTemplateParams): string {
-    return `
+export function generateEmailTemplate({
+  recipientName,
+  customContent,
+}: EmailTemplateParams): string {
+  return `
         <!DOCTYPE html>
         <html lang="fr">
             <head>
