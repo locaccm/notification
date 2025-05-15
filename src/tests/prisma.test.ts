@@ -45,10 +45,8 @@ describe("fetchData", () => {
       expect.objectContaining({ where: { USEC_TYPE: "TENANT" } }),
     );
 
-    // Nettoyage du spy
     spyFindMany.mockRestore();
 
-    // Assert: disconnect was invoked
     expect(prisma.$disconnect).toHaveBeenCalled();
   });
 
