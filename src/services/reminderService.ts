@@ -101,5 +101,5 @@ export function checkDailyReminders() {
 }
 
 export function sendReminder(reminder: string) {
-  reminder;
+  // no-op
 }
