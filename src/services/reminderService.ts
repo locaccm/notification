@@ -85,21 +85,15 @@ export function checkDailyReminders() {
   tenants.forEach((tenant: Tenant & { events: Event[] }) => {
     const tenantReminders = addRemindersForTenant(tenant);
     tenantReminders.forEach((reminder) => {
-      // Remplacer par votre logique d'envoi de rappels
-      sendReminder(reminder);
+      return reminder;
     });
 
     const eventReminders = addRemindersForEvents(tenant);
     eventReminders.forEach((reminder) => {
-      // Remplacer par votre logique d'envoi de rappels
-      sendReminder(reminder);
+      return reminder;
     });
   });
 
-  // Vérifie les rappels tous les 24h (86400000 ms)
+  //Check reminders every 24 hours (86400000 ms)
   setTimeout(checkDailyReminders, 86400000);
-}
-
-export function sendReminder(reminder: string) {
-  // no-op
 }
