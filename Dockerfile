@@ -1,20 +1,20 @@
-# Étape 1 : Utiliser l'image officielle de Node.js (version LTS recommandée)
+# Step 1: Use the official Node.js image (LTS version recommended)
 FROM node:18
 
-# Étape 2 : Définir le répertoire de travail dans le conteneur
+# Step 2: Set the working directory inside the container
 WORKDIR /app
 
-# Étape 3 : Copier uniquement les fichiers de dépendances
+# Step 3: Copy only the dependency files
 COPY package*.json ./
 
-# Étape 4 : Installer les dépendances
+# Step 4: Install dependencies
 RUN npm install
 
-# Étape 5 : Copier le reste des fichiers de l'application
+# Step 5: Copy the rest of the application files
 COPY . .
 
-# Étape 6 : Exposer le port sur lequel l'application écoute
+# Step 6: Expose the port the app runs on
 EXPOSE 3000
 
-# Étape 7 : Lancer l'application
+# Step 7: Start the application
 CMD ["npm", "start"]
