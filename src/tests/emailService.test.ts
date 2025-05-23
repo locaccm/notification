@@ -1,20 +1,20 @@
-import { generateEmailTemplate } from '../services/emailService';
-import { EmailTemplateParams } from '../interfaces/emailTemplateParams';
+import { generateEmailTemplate } from "../services/emailService";
+import { EmailTemplateParams } from "../interfaces/emailTemplateParams";
 
 const normalizeHtml = (html: string) => {
-    return html.replace(/\s+/g, ' ').trim(); 
-}
+  return html.replace(/\s+/g, " ").trim();
+};
 
-describe('HTML email template generation with personalized content', () => {
-    it('should generate a valid email template with the provided parameters', () => {
-        const params: EmailTemplateParams = {
-            recipientName: 'Alice',
-            customContent: 'This is a personalized notification.',
-        };
+describe("HTML email template generation with personalized content", () => {
+  it("should generate a valid email template with the provided parameters", () => {
+    const params: EmailTemplateParams = {
+      recipientName: "Alice",
+      customContent: "This is a personalized notification.",
+    };
 
-        const result = generateEmailTemplate(params);
+    const result = generateEmailTemplate(params);
 
-        const expectedHtml = `
+    const expectedHtml = `
             <!DOCTYPE html>
             <html lang="fr">
                 <head>
@@ -68,8 +68,8 @@ describe('HTML email template generation with personalized content', () => {
                     </div>
                 </body>
             </html>
-            `.trim(); 
+            `.trim();
 
-        expect(normalizeHtml(result)).toEqual(normalizeHtml(expectedHtml));
-    });
+    expect(normalizeHtml(result)).toEqual(normalizeHtml(expectedHtml));
+  });
 });

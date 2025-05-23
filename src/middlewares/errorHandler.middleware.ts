@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 
-// Global error handler middleware
 export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ): void => {
+  const status = err.status || 500;
+  const message = err.message || "Something went wrong!";
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  res.status(status).json({ error: message });
 };

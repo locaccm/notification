@@ -3,11 +3,14 @@ import cors from "./config/cors.config";
 import emailRoutes from "./routes/email.routes";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
 import { swaggerServe, swaggerSetup } from "./config/swagger.config";
-import { generateEmailTemplate } from './services/emailService';
-import { EmailTemplateParams } from './interfaces/emailTemplateParams';
+import { generateEmailTemplate } from "./services/emailService";
+import { EmailTemplateParams } from "./interfaces/emailTemplateParams";
+import { checkDailyReminders } from "./services/reminderService";
 import "./config/env.config";
 
-const app = express();
+export const app = express();
+
+app.disable("x-powered-by");
 
 app.use(cors);
 app.use(express.json());
@@ -16,15 +19,17 @@ app.use("/mail-docs", swaggerServe, swaggerSetup);
 
 app.use("/mail", emailRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT);
-
-
 export const params: EmailTemplateParams = {
-    recipientName: 'Alice',
-    customContent: 'This is a personalized notification.',
+  recipientName: "Alice",
+  customContent: "This is a personalized notification.",
 };
 
 generateEmailTemplate(params);
+
+checkDailyReminders();

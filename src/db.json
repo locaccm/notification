@@ -1,0 +1,70 @@
+{
+  "tenants": [
+    {
+      "email": "tenant1@example.com",
+      "paymentDate": "2026-06-04",
+      "rentalStartDate": "2025-08-01",
+      "rentalEndDate": "2026-06-10",
+      "event": {
+        "name": "Wedding",
+        "eventStartDate": "2025-09-02",
+        "eventEndDate": "2025-09-05"
+      }
+    },
+    {
+      "email": "tenant2@example.com",
+      "paymentDate": "2025-03-28",
+      "rentalStartDate": "2025-04-05",
+      "rentalEndDate": "2025-04-15",
+      "event": {
+        "name": "Professional Seminar",
+        "eventStartDate": "2025-04-06",
+        "eventEndDate": "2025-04-07"
+      }
+    },
+    {
+      "email": "tenant3@example.com",
+      "paymentDate": "2025-03-30",
+      "rentalStartDate": "2025-04-10",
+      "rentalEndDate": "2025-04-20",
+      "event": {
+        "name": "Art Exhibition",
+        "eventStartDate": "2025-04-11",
+        "eventEndDate": "2025-04-14"
+      }
+    },
+    {
+      "email": "tenant4@example.com",
+      "paymentDate": "2025-04-08",
+      "rentalStartDate": "2025-04-12",
+      "rentalEndDate": "2025-04-18",
+      "event": {
+        "name": "Scientific Conference",
+        "eventStartDate": "2025-04-13",
+        "eventEndDate": "2025-04-13"
+      }
+    },
+    {
+      "email": "tenant5@example.com",
+      "paymentDate": "2025-04-14",
+      "rentalStartDate": "2025-04-10",
+      "rentalEndDate": "2025-04-14",
+      "event": {
+        "name": "Company Anniversary",
+        "eventStartDate": "2025-04-11",
+        "eventEndDate": "2025-04-11"
+      }
+    },
+    {
+      "email": "tenant6@example.com",
+      "paymentDate": "2025-04-12",
+      "rentalStartDate": "2025-04-08",
+      "rentalEndDate": "2025-04-16",
+      "event": {
+        "name": "Music Festival",
+        "eventStartDate": "2025-04-09",
+        "eventEndDate": "2025-04-12"
+      }
+    }
+  ]
+}
