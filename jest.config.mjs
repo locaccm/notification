@@ -15,5 +15,8 @@ export default {
     "!src/**/__tests__/**",
     "!src/lib/**",
   ],
+  coveragePathIgnorePatterns: [
+    "/src/start.ts"
+  ],
   testPathIgnorePatterns: ["/node_modules/", "/src/lib/"],
 };
