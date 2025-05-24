@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test": "jest --coverage --coverageReporters=lcov",
+    "prisma:generate": "prisma generate",
+    "test": "npm run prisma:generate && jest --coverage --coverageReporters=lcov",
     "start": "ts-node src/start.ts"
   },
   "devDependencies": {
