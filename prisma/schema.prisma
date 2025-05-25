@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  USEN_ID       Int           @id @default(autoincrement()) @map("USEN_ID")
+  USEC_URLPP    String        @map("USEC_URLPP")
+  USEC_LNAME    String        @map("USEC_LNAME")
+  USEC_FNAME    String        @map("USEC_FNAME")
+  USEC_TYPE     String        @map("USEC_TYPE")
+  USEC_BIO      String?       @map("USEC_BIO")
+  USED_BIRTH    DateTime      @map("USED_BIRTH")
+  USEC_TEL      String?       @map("USEC_TEL")
+  USEC_ADDRESS  String?       @map("USEC_ADDRESS")
+  USEC_MAIL     String        @unique @map("USEC_MAIL")
+  USEC_PASSWORD String        @map("USEC_PASSWORD")
+  USEN_INVITE   Int?          @map("USEN_INVITE")
+
+  invitedBy     User?         @relation("UserInvites", fields: [USEN_INVITE], references: [USEN_ID], onDelete: SetNull)
+  invites       User[]        @relation("UserInvites")
+  accommodations Accommodation[]
+  events        Event[]
+  leases        Lease[]
+  messagesSent  Message[]     @relation("Sender")
+  messagesReceived Message[]  @relation("Receiver")
+
+  @@map("USER")
+}
+
+model Accommodation {
+  ACCN_ID        Int          @id @default(autoincrement()) @map("ACCN_ID")
+  ACCC_NAME      String       @map("ACCC_NAME")
+  ACCC_TYPE      String       @map("ACCC_TYPE")
+  ACCC_DESC      String?      @map("ACCC_DESC")
+  ACCC_ADDRESS   String       @map("ACCC_ADDRESS")
+  ACCB_AVAILABLE Boolean      @default(true) @map("ACCB_AVAILABLE")
+  USEN_ID        Int?         @map("USEN_ID")
+
+  owner          User?        @relation(fields: [USEN_ID], references: [USEN_ID], onDelete: Cascade)
+  events         Event[]
+  leases         Lease[]
+
+  @@map("ACCOMMODATION")
+}
+
+model Event {
+  EVEN_ID     Int           @id @default(autoincrement()) @map("EVEN_ID")
+  EVEC_LIB    String        @map("EVEC_LIB")
+  EVED_START  DateTime      @map("EVED_START")
+  EVED_END    DateTime      @map("EVED_END")
+  USEN_ID     Int           @map("USEN_ID")
+  ACCN_ID     Int           @map("ACCN_ID")
+
+  user        User          @relation(fields: [USEN_ID], references: [USEN_ID], onDelete: Cascade)
+  accommodation Accommodation @relation(fields: [ACCN_ID], references: [ACCN_ID], onDelete: Cascade)
+
+  @@map("EVENT")
+}
+
+model Message {
+  MESN_ID       Int      @id @default(autoincrement()) @map("MESN_ID")
+  MESN_RECEIVER Int      @map("MESN_RECEIVER")
+  MESN_SENDER   Int      @map("MESN_SENDER")
+  MESC_CONTENT  String   @map("MESC_CONTENT")
+  MESD_DATE     DateTime @default(now()) @map("MESD_DATE")
+  MESB_NEW      Boolean  @default(true)  @map("MESB_NEW")
+
+  sender        User     @relation("Sender", fields: [MESN_SENDER], references: [USEN_ID], onDelete: Cascade)
+  receiver      User     @relation("Receiver", fields: [MESN_RECEIVER], references: [USEN_ID], onDelete: Cascade)
+
+  @@map("MESSAGE")
+}
+
+model Lease {
+  LEAN_ID       Int       @id @default(autoincrement()) @map("LEAN_ID")
+  LEAD_START    DateTime  @map("LEAD_START")
+  LEAD_END      DateTime  @map("LEAD_END")
+  LEAN_RENT     Decimal   @map("LEAN_RENT")
+  LEAN_CHARGES  Decimal   @map("LEAN_CHARGES")
+  LEAD_PAYMENT  DateTime  @map("LEAD_PAYMENT")
+  LEAB_ACTIVE   Boolean   @default(true) @map("LEAB_ACTIVE")
+  USEN_ID       Int       @map("USEN_ID")
+  ACCN_ID       Int       @map("ACCN_ID")
+
+  user          User      @relation(fields: [USEN_ID], references: [USEN_ID], onDelete: Cascade)
+  accommodation Accommodation @relation(fields: [ACCN_ID], references: [ACCN_ID], onDelete: Cascade)
+
+  @@map("LEASE")
+}
