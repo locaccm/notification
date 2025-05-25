@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { sendEmailController } from "../controllers/email.controller";
 import { sendEmailService } from "../services/mailer.service";
+import axios from "axios";
 
+jest.mock("axios");
 jest.mock("../services/mailer.service");
 
 describe("Handling email sending via the email controller", () => {
@@ -9,11 +11,27 @@ describe("Handling email sending via the email controller", () => {
   let res: Partial<Response>;
 
   beforeEach(() => {
-    req = {};
+    req = {
+      headers: {
+        authorization: "Bearer mock-token",
+      },
+    };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
+  });
+
+  it("should return 401 if token is missing", async () => {
+    req.headers = {};
+    req.body = { to: "", subject: "" };
+
+    await sendEmailController(req as Request, res as Response);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Unauthorized: missing token",
+    });
   });
 
   it("should return 400 if required fields are missing", async () => {
@@ -25,6 +43,24 @@ describe("Handling email sending via the email controller", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Missing required fields" });
   });
 
+  it("should return 403 if access is denied", async () => {
+    req.body = {
+      to: "example@example.com",
+      subject: "Test Email",
+      text: "Test",
+      html: "<p>Test</p>",
+    };
+
+    (axios.post as jest.Mock).mockRejectedValue({ response: { status: 403 } });
+
+    await sendEmailController(req as Request, res as Response);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Forbidden: insufficient rights",
+    });
+  });
+
   it("should send email successfully and return status 200", async () => {
     req.body = {
       to: "example@example.com",
@@ -33,16 +69,17 @@ describe("Handling email sending via the email controller", () => {
       html: "<p>Test email content</p>",
     };
 
+    (axios.post as jest.Mock).mockResolvedValue({ status: 201 });
     (sendEmailService as jest.Mock).mockResolvedValue({
       success: true,
-      messageId: "b6fdd7f4-cb21-4c8a-8c90-ffda5fd9b0f8",
+      messageId: "abc-123",
     });
 
     await sendEmailController(req as Request, res as Response);
 
     expect(res.json).toHaveBeenCalledWith({
       message: "Email sent successfully",
-      messageId: "b6fdd7f4-cb21-4c8a-8c90-ffda5fd9b0f8",
+      messageId: "abc-123",
     });
   });
 
@@ -50,10 +87,11 @@ describe("Handling email sending via the email controller", () => {
     req.body = {
       to: "example@example.com",
       subject: "Test Email",
-      text: "Test email content",
-      html: "<p>Test email content</p>",
+      text: "Test",
+      html: "<p>Test</p>",
     };
 
+    (axios.post as jest.Mock).mockResolvedValue({ status: 201 });
     (sendEmailService as jest.Mock).mockResolvedValue({
       success: false,
       error: "SMTP server error",
@@ -72,10 +110,11 @@ describe("Handling email sending via the email controller", () => {
     req.body = {
       to: "example@example.com",
       subject: "Test Email",
-      text: "Test email content",
-      html: "<p>Test email content</p>",
+      text: "Test",
+      html: "<p>Test</p>",
     };
 
+    (axios.post as jest.Mock).mockResolvedValue({ status: 201 });
     (sendEmailService as jest.Mock).mockRejectedValue(
       new Error("Internal error"),
     );
