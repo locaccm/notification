@@ -11,8 +11,6 @@ export function createReminder(
     return null;
   }
 
-  //console.log("passe1 :" + specificDate, eventName)
-
   const now = new Date();
   const targetTime = specificDate.getTime();
   const diffInMs = targetTime - now.getTime();
@@ -21,15 +19,11 @@ export function createReminder(
     return null;
   }
 
-  //console.log("passe2 :" + specificDate, eventName)
-
   const daysRemaining = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
   if (daysRemaining > 5) {
     return null;
   }
-
-  //console.log("passe3 :" + specificDate, eventName)
 
   return `🔔 Reminder: ${eventName} - scheduled in ${daysRemaining} days.`;
 }
