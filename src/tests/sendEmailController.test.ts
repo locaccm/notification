@@ -127,4 +127,34 @@ describe("Handling email sending via the email controller", () => {
       details: "Internal error",
     });
   });
+
+  it("should return 403 and log error if access check throws unexpected error", async () => {
+    req.body = {
+      to: "example@example.com",
+      subject: "Test Email",
+      text: "Test",
+      html: "<p>Test</p>",
+    };
+
+    (axios.post as jest.Mock).mockRejectedValue({
+      message: "Unexpected server error",
+      response: { status: 500 },
+    });
+
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+
+    await sendEmailController(req as Request, res as Response);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Forbidden: insufficient rights",
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "⚠️ Error checking access:",
+      "Unexpected server error",
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
 });

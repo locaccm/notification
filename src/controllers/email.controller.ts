@@ -4,7 +4,7 @@ import axios from "axios";
 
 async function hasAccess(token: string, rightName: string): Promise<boolean> {
   try {
-    const response = await axios.post("https://auth.example.com/access/check", {
+    const response = await axios.post(process.env.AUTH_ACCESS_CHECK_URL!, {
       token,
       rightName,
     });
