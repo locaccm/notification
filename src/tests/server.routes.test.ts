@@ -1,5 +1,13 @@
 import request from "supertest";
 import { app } from "../index";
+import axios from "axios";
+
+jest.mock("axios");
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+beforeEach(() => {
+  mockedAxios.post.mockResolvedValue({ status: 201 });
+});
 
 describe("API route handling and response validation", () => {
   it("should respond with status 200 for the mail-docs route", async () => {
@@ -22,6 +30,7 @@ describe("API route handling and response validation", () => {
     const response = await request(app)
       .post("/mail/send-email")
       .set("Content-Type", "application/json")
+      .set("Authorization", "Bearer fake-token")
       .send({ invalidField: "test" });
 
     expect(response.status).toBe(400);

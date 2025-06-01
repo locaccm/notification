@@ -1,45 +1,35 @@
-import * as reminderService from "../services/reminderService";
-import * as tenantModel from "../models/tenantModel";
+import { checkDailyReminders } from "../services/reminder.service";
+import * as dbModule from "../loadDatabase";
+import * as emailModule from "../services/reminderEmail.service";
 
-jest.useFakeTimers();
+jest.mock("../loadDatabase");
+jest.mock("../services/reminderEmail.service");
 
-// --------------------------------------------
-// Test for checkDailyReminders
-// --------------------------------------------
-describe("Daily reminder verification scheduling", () => {
-  it("schedules the call every 24 hours", () => {
-    const mockTenant = {
-      email: "mock@example.com",
-      paymentDate: new Date(
-        Date.now() + 10 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
-      leaseStartDate: new Date(
-        Date.now() - 30 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
-      leaseEndDate: new Date(
-        Date.now() + 15 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
-      events: [
-        {
-          name: "Inspection",
-          eventStartDate: new Date(
-            Date.now() + 10 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          eventEndDate: new Date(
-            Date.now() + 12 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-      ],
-    };
+describe("Daily reminders check and sending process", () => {
+  it("should perform all reminder checks and send emails successfully", async () => {
+    const tenant = { USEC_MAIL: "test@example.com", leases: [], events: [] };
 
-    jest.spyOn(tenantModel, "loadDatabase").mockReturnValue([mockTenant]);
+    (dbModule.loadDatabase as jest.Mock).mockResolvedValue([tenant]);
+    jest
+      .spyOn(require("../services/reminder.service"), "addRemindersForTenant")
+      .mockReturnValue(["tenantReminder"]);
+    jest
+      .spyOn(require("../services/reminder.service"), "addRemindersForEvents")
+      .mockReturnValue(["eventReminder"]);
+    (emailModule.sendReminders as jest.Mock).mockResolvedValue(undefined);
 
-    const spy = jest.spyOn(reminderService, "checkDailyReminders");
+    const setTimeoutSpy = jest
+      .spyOn(global, "setTimeout")
+      .mockImplementation(() => {
+        return {} as NodeJS.Timeout;
+      });
 
-    reminderService.checkDailyReminders();
+    await checkDailyReminders();
 
-    jest.advanceTimersByTime(86400000);
+    expect(dbModule.loadDatabase).toHaveBeenCalled();
+    expect(emailModule.sendReminders).toHaveBeenCalledTimes(2);
+    expect(setTimeoutSpy).toHaveBeenCalledWith(checkDailyReminders, 86400000);
 
-    expect(spy).toHaveBeenCalledTimes(1);
+    setTimeoutSpy.mockRestore();
   });
 });

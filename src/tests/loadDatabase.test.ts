@@ -1,74 +1,34 @@
-import fs from "fs";
-import path from "path";
-import { loadDatabase } from "../models/tenantModel";
+import { prisma } from "../lib/prisma.lib";
+import { loadDatabase } from "../loadDatabase";
 
-const dbPath = path.resolve(__dirname, "../db.json");
+const isCI = process.env.CI === "true";
 
-const originalConsoleError = console.error;
-
-let originalBackup: string | null = null;
-
-beforeAll(() => {
-  if (fs.existsSync(dbPath)) {
-    originalBackup = fs.readFileSync(dbPath, "utf-8");
-  }
-  console.error = () => {};
-});
-
-afterAll(() => {
-  if (originalBackup !== null) {
-    fs.writeFileSync(dbPath, originalBackup, "utf-8");
-  } else if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath);
-  }
-  console.error = originalConsoleError;
-});
-
-// --------------------------------------------
-// Test for loadDatabase
-// --------------------------------------------
-describe("Database loading from JSON file", () => {
-  afterEach(() => {
-    if (fs.existsSync(dbPath)) {
-      fs.unlinkSync(dbPath);
-    }
+if (!isCI) {
+  beforeAll(async () => {
+    await prisma.$connect();
   });
 
-  it("should load tenants from a valid JSON file", () => {
-    const content = {
-      tenants: [{ email: "Alice@test02.fr" }, { email: "Bob@test02.com" }],
-    };
-    fs.writeFileSync(dbPath, JSON.stringify(content), "utf-8");
-
-    const result = loadDatabase();
-
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(2);
-    expect(result[0].email).toBe("Alice@test02.fr");
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 
-  it("should return an empty array if the file is malformed", () => {
-    fs.writeFileSync(dbPath, "{ tenants: [", "utf-8");
+  describe("Tenant data retrieval from database", () => {
+    it("should fetch tenants from the database", async () => {
+      const tenants = await loadDatabase();
 
-    const result = loadDatabase();
+      expect(Array.isArray(tenants)).toBe(true);
+      expect(tenants.length).toBeGreaterThan(0);
 
-    expect(result).toEqual([]);
+      const tenant = tenants[0];
+      expect(tenant).toHaveProperty("USEC_MAIL");
+      expect(tenant).toHaveProperty("leases");
+      expect(tenant).toHaveProperty("events");
+    });
   });
-
-  it("should return an empty array if 'tenants' is not an array", () => {
-    const content = { tenants: "not an array" };
-    fs.writeFileSync(dbPath, JSON.stringify(content), "utf-8");
-
-    const result = loadDatabase();
-
-    expect(result).toEqual([]);
+} else {
+  describe.skip("Tenant data retrieval from database (skipped in CI)", () => {
+    it("CI environment detected – test skipped", () => {
+      // Intentionally empty
+    });
   });
-
-  it("should return an empty array if the file does not exist", () => {
-    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
-
-    const result = loadDatabase();
-
-    expect(result).toEqual([]);
-  });
-});
+}
