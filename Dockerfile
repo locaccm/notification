@@ -1,20 +1,32 @@
-# Step 1: Use the official Node.js image (LTS version recommended)
-FROM node:18
+FROM node:20-alpine
 
-# Step 2: Set the working directory inside the container
+# 1. Environment variable for the database
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+
+# 2. Set working directory
 WORKDIR /app
 
-# Step 3: Copy only the dependency files
+# 3. Install git if needed — remove if not using it
+RUN apk add --no-cache git
+
+# 4. Copy dependency files
 COPY package*.json ./
 
-# Step 4: Install dependencies
+# 5. Install dependencies
 RUN npm install
 
-# Step 5: Copy the rest of the application files
+# 6. Copy the rest of the app source code
 COPY . .
 
-# Step 6: Expose the port the app runs on
+# 7. Generate Prisma client
+RUN npx prisma generate
+
+# 8. Build the app
+RUN npm run build
+
+# 9. Expose port
 EXPOSE 3000
 
-# Step 7: Start the application
+# 10. Start the app
 CMD ["npm", "start"]
