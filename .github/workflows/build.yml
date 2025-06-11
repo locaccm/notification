@@ -87,5 +87,5 @@ jobs:
 
       - name: Tag & Push to Artifact Registry
         run: |
-          docker tag authnotification-service:latest europe-west1-docker.pkg.dev/intricate-pad-455413-f7/locaccm-repo-docker/notification-service:latest
+          docker tag notification-service:latest europe-west1-docker.pkg.dev/intricate-pad-455413-f7/locaccm-repo-docker/notification-service:latest
           docker push europe-west1-docker.pkg.dev/intricate-pad-455413-f7/locaccm-repo-docker/notification-service:latest
