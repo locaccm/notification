@@ -27,7 +27,8 @@
     "prisma": "^6.7.0",
     "supertest": "^7.1.0",
     "ts-jest": "^29.3.2",
-    "typescript": "^5.8.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
