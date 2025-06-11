@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
+    "generate": "prisma generate --schema=prisma/schema.prisma",
+    "prisma:generate": "npm run generate",
     "test": "npm run prisma:generate && jest --coverage --coverageReporters=lcov",
     "start": "npm run generate && node dist/index.js",
     "build": "tsc"
