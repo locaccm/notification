@@ -2,7 +2,8 @@
   "scripts": {
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "test": "npm run prisma:generate && jest --coverage --coverageReporters=lcov",
-    "start": "ts-node src/start.ts"
+    "start": "ts-node src/start.ts",
+    "build": "tsc"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
