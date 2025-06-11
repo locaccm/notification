@@ -18,7 +18,6 @@ COPY package*.json ./
 
 # 5. Install dependencies
 RUN npm install
-RUN npm install -g ts-node
 
 # 6. Copy the rest of the app source code
 COPY . .
