@@ -4,6 +4,9 @@ FROM node:20-alpine
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
+ARG AUTH_SERVICE_URL
+ENV AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+
 # 2. Set working directory
 WORKDIR /app
 
@@ -15,6 +18,7 @@ COPY package*.json ./
 
 # 5. Install dependencies
 RUN npm install
+RUN npm install -g ts-node
 
 # 6. Copy the rest of the app source code
 COPY . .
