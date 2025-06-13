@@ -1,0 +1,92 @@
+openapi: 3.0.0
+info:
+  title: Email Notification API
+  description: API to send email notifications using Nodemailer with JWT access control.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+paths:
+  /api/send-email:
+    post:
+      summary: Send a secured email notification
+      description: Sends an email with the provided details. Requires a valid JWT with appropriate rights.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  example: "example@example.com"
+                subject:
+                  type: string
+                  example: "Subject of the email"
+                text:
+                  type: string
+                  example: "This is the plain text version of the email"
+                html:
+                  type: string
+                  example: "<p>This is the <strong>HTML</strong> version of the email</p>"
+      responses:
+        '200':
+          description: Email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email sent successfully"
+                  messageId:
+                    type: string
+                    example: "b6fdd7f4-cb21-4c8a-8c90-ffda5fd9b0f8"
+        '400':
+          description: Bad Request (missing fields)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing required fields"
+        '401':
+          description: Unauthorized (missing or invalid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized: missing token"
+        '403':
+          description: Forbidden (insufficient rights)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden: insufficient rights"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Email sending failed"
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

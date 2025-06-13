@@ -1,0 +1,34 @@
+import { prisma } from "../lib/prisma.lib";
+import { loadDatabase } from "../loadDatabase";
+
+const isCI = process.env.CI === "true";
+
+if (!isCI) {
+  beforeAll(async () => {
+    await prisma.$connect();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  describe("Tenant data retrieval from database", () => {
+    it("should fetch tenants from the database", async () => {
+      const tenants = await loadDatabase();
+
+      expect(Array.isArray(tenants)).toBe(true);
+      expect(tenants.length).toBeGreaterThan(0);
+
+      const tenant = tenants[0];
+      expect(tenant).toHaveProperty("USEC_MAIL");
+      expect(tenant).toHaveProperty("leases");
+      expect(tenant).toHaveProperty("events");
+    });
+  });
+} else {
+  describe.skip("Tenant data retrieval from database (skipped in CI)", () => {
+    it("CI environment detected – test skipped", () => {
+      // Intentionally empty
+    });
+  });
+}
