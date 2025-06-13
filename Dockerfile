@@ -25,8 +25,6 @@ COPY . .
 # 7. Generate Prisma client
 RUN npm run prisma:generate
 
-COPY src/swagger.yaml ./dist/swagger.yaml
-
 # 8. Build the app
 RUN npm run build
 
