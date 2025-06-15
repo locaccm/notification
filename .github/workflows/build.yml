@@ -83,6 +83,11 @@ jobs:
           docker build \
             --build-arg DATABASE_URL=${{ secrets.DATABASE_URL_PRE_PROD  }} \
             --build-arg AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} \
+            --build-arg MAIL_HOST=${{ secrets.MAIL_HOST }} \
+            --build-arg MAIL_PORT=${{ secrets.MAIL_PORT }} \
+            --build-arg MAIL_USER=${{ secrets.MAIL_USER }} \
+            --build-arg MAIL_PASS=${{ secrets.MAIL_PASS }} \
+            --build-arg CORS_ORIGIN=${{ secrets.CORS_ORIGIN }} \
             -t notification-service:latest .
 
       - name: Tag & Push to Artifact Registry
