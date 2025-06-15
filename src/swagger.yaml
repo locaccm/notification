@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:5000
 paths:
-  /api/send-email:
+  /mail/send-email:
     post:
       summary: Send a secured email notification
       description: Sends an email with the provided details. Requires a valid JWT with appropriate rights.
