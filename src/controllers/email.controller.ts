@@ -6,7 +6,8 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export async function isTenantOrOwner(token: string): Promise<boolean> {
   if (!AUTH_SERVICE_URL) {
-    throw new Error("Missing AUTH_SERVICE_URL environment variable");
+    console.error("AUTH_SERVICE_URL is not defined");
+    return false;
   }
 
   const rightsToCheck = ["TENANT", "OWNER"];
