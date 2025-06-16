@@ -1,17 +1,26 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { sendEmailService } from "../services/mailer.service";
-import { isTenantOrOwner, sendEmailController } from "../controllers/email.controller";
+import {
+  isTenantOrOwner,
+  sendEmailController,
+} from "../controllers/email.controller";
 
 jest.mock("axios");
 jest.mock("../services/mailer.service");
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
-const mockedSendEmailService = sendEmailService as jest.MockedFunction<typeof sendEmailService>;
+const mockedSendEmailService = sendEmailService as jest.MockedFunction<
+  typeof sendEmailService
+>;
+const AUTH_URL = "http://auth-service";
 
 describe("isTenantOrOwner", () => {
   const token = "test-token";
-  const url = process.env.AUTH_SERVICE_URL;
+
+  beforeAll(() => {
+    process.env.AUTH_SERVICE_URL = AUTH_URL;
+  });
 
   beforeEach(() => {
     mockedAxios.post.mockReset();
@@ -19,24 +28,22 @@ describe("isTenantOrOwner", () => {
   });
 
   it("throws if AUTH_SERVICE_URL is missing", async () => {
-    const original = process.env.AUTH_SERVICE_URL;
     delete process.env.AUTH_SERVICE_URL;
     await expect(isTenantOrOwner(token)).rejects.toThrow(
-      "Missing AUTH_SERVICE_URL environment variable"
+      "Missing AUTH_SERVICE_URL environment variable",
     );
     expect(mockedAxios.post).not.toHaveBeenCalled();
-    process.env.AUTH_SERVICE_URL = original;
+    process.env.AUTH_SERVICE_URL = AUTH_URL;
   });
 
   it("returns true if first right succeeds", async () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
-    process.env.AUTH_SERVICE_URL = url;
     await expect(isTenantOrOwner(token)).resolves.toBe(true);
     expect(mockedAxios.post).toHaveBeenCalledTimes(1);
     expect(mockedAxios.post).toHaveBeenCalledWith(
-      url,
+      AUTH_URL,
       { token, rightName: "TENANT" },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" } },
     );
   });
 
@@ -44,53 +51,45 @@ describe("isTenantOrOwner", () => {
     mockedAxios.post
       .mockRejectedValueOnce({ response: { status: 403 } })
       .mockResolvedValueOnce({ status: 200 });
-    process.env.AUTH_SERVICE_URL = url;
     await expect(isTenantOrOwner(token)).resolves.toBe(true);
     expect(mockedAxios.post).toHaveBeenCalledTimes(2);
     expect(mockedAxios.post).toHaveBeenNthCalledWith(
       2,
-      url,
+      AUTH_URL,
       { token, rightName: "OWNER" },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { "Content-Type": "application/json" } },
     );
   });
 
   it("logs unexpected axios errors not 403", async () => {
-    // simulate axios.isAxiosError
-    jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
+    jest.spyOn(axios, "isAxiosError").mockReturnValue(true);
     const axiosError = { response: { status: 500, data: "err-data" } };
     const spy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockedAxios.post
       .mockRejectedValueOnce(axiosError)
       .mockRejectedValueOnce({ response: { status: 403 } });
-    process.env.AUTH_SERVICE_URL = url;
     await expect(isTenantOrOwner(token)).resolves.toBe(false);
     expect(spy).toHaveBeenCalledWith(
       "Unexpected error during access check:",
-      "err-data"
+      "err-data",
     );
     spy.mockRestore();
   });
 
   it("logs non-AxiosError errors", async () => {
-    jest.spyOn(axios, 'isAxiosError').mockReturnValue(false);
+    jest.spyOn(axios, "isAxiosError").mockReturnValue(false);
     const err = new Error("oops");
     const spy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockedAxios.post
       .mockRejectedValueOnce(err)
       .mockRejectedValueOnce({ response: { status: 403 } });
-    process.env.AUTH_SERVICE_URL = url;
     await expect(isTenantOrOwner(token)).resolves.toBe(false);
-    expect(spy).toHaveBeenCalledWith(
-      "Error checking access:",
-      "oops"
-    );
+    expect(spy).toHaveBeenCalledWith("Error checking access:", "oops");
     spy.mockRestore();
   });
 
   it("returns false if all rights are forbidden", async () => {
     mockedAxios.post.mockRejectedValue({ response: { status: 403 } });
-    process.env.AUTH_SERVICE_URL = url;
     await expect(isTenantOrOwner(token)).resolves.toBe(false);
     expect(mockedAxios.post).toHaveBeenCalledTimes(2);
   });
@@ -113,7 +112,9 @@ describe("sendEmailController", () => {
   it("returns 401 if no token", async () => {
     await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized: missing token" });
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Unauthorized: missing token",
+    });
   });
 
   it("returns 400 if missing fields", async () => {
@@ -131,27 +132,51 @@ describe("sendEmailController", () => {
     await sendEmailController(req as Request, res as Response);
     expect(isTenantOrOwner).toHaveBeenCalledWith("token");
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ error: "Forbidden: insufficient rights" });
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Forbidden: insufficient rights",
+    });
   });
 
   it("sends email and returns success with text", async () => {
     (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
-    mockedSendEmailService.mockResolvedValue({ success: true, messageId: "123" });
+    mockedSendEmailService.mockResolvedValue({
+      success: true,
+      messageId: "123",
+    });
     req.headers = { authorization: "Bearer token" };
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
-    expect(mockedSendEmailService).toHaveBeenCalledWith("a", "b", "c", undefined);
-    expect(res.json).toHaveBeenCalledWith({ message: "Email sent successfully", messageId: "123" });
+    expect(mockedSendEmailService).toHaveBeenCalledWith(
+      "a",
+      "b",
+      "c",
+      undefined,
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Email sent successfully",
+      messageId: "123",
+    });
   });
 
   it("sends email and returns success with html only", async () => {
     (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
-    mockedSendEmailService.mockResolvedValue({ success: true, messageId: "456" });
+    mockedSendEmailService.mockResolvedValue({
+      success: true,
+      messageId: "456",
+    });
     req.headers = { authorization: "Bearer token" };
     req.body = { to: "x@x.com", subject: "sub", html: "<p>html</p>" };
     await sendEmailController(req as Request, res as Response);
-    expect(mockedSendEmailService).toHaveBeenCalledWith("x@x.com", "sub", undefined, "<p>html</p>");
-    expect(res.json).toHaveBeenCalledWith({ message: "Email sent successfully", messageId: "456" });
+    expect(mockedSendEmailService).toHaveBeenCalledWith(
+      "x@x.com",
+      "sub",
+      undefined,
+      "<p>html</p>",
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Email sent successfully",
+      messageId: "456",
+    });
   });
 
   it("handles send failure", async () => {
@@ -161,7 +186,10 @@ describe("sendEmailController", () => {
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Email sending failed", details: "fail" });
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Email sending failed",
+      details: "fail",
+    });
   });
 
   it("handles exceptions and returns 500", async () => {
@@ -171,6 +199,9 @@ describe("sendEmailController", () => {
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Internal server error", details: "boom" });
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Internal server error",
+      details: "boom",
+    });
   });
 });
