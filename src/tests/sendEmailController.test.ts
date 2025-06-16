@@ -1,3 +1,4 @@
+// Set AUTH_SERVICE_URL before importing the controller module
 process.env.AUTH_SERVICE_URL = "http://auth-service";
 
 import { Request, Response } from "express";
@@ -8,12 +9,15 @@ import * as EmailController from "../controllers/email.controller";
 const { isTenantOrOwner, sendEmailController } = EmailController;
 
 jest.mock("axios");
+
+// Silence console.error across tests
+jest.spyOn(console, 'error').mockImplementation(() => {});
 jest.mock("../services/mailer.service");
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
-const mockedSendEmailService = sendEmailService as jest.MockedFunction<
-  typeof sendEmailService
->;
+const mockedSendEmailService = sendEmailService as jest.MockedFunction<typeof sendEmailService>;
+
+// Tests for isTenantOrOwner
 
 describe("isTenantOrOwner", () => {
   const token = "test-token";
@@ -42,7 +46,7 @@ describe("isTenantOrOwner", () => {
     expect(mockedAxios.post).toHaveBeenCalledWith(
       AUTH_URL,
       { token, rightName: "TENANT" },
-      { headers: { "Content-Type": "application/json" } },
+      { headers: { "Content-Type": "application/json" } }
     );
   });
 
@@ -56,12 +60,12 @@ describe("isTenantOrOwner", () => {
       2,
       AUTH_URL,
       { token, rightName: "OWNER" },
-      { headers: { "Content-Type": "application/json" } },
+      { headers: { "Content-Type": "application/json" } }
     );
   });
 
   it("logs unexpected axios errors", async () => {
-    jest.spyOn(axios, "isAxiosError").mockReturnValue(true);
+    jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
     const err = { response: { status: 500, data: "bad" } } as any;
     const spy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockedAxios.post
@@ -70,20 +74,23 @@ describe("isTenantOrOwner", () => {
     await expect(isTenantOrOwner(token)).resolves.toBe(false);
     expect(spy).toHaveBeenCalledWith(
       "Unexpected error during access check:",
-      "bad",
+      "bad"
     );
     spy.mockRestore();
   });
 
   it("logs non-Axios errors", async () => {
-    jest.spyOn(axios, "isAxiosError").mockReturnValue(false);
+    jest.spyOn(axios, 'isAxiosError').mockReturnValue(false);
     const err = new Error("oops");
     const spy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockedAxios.post
       .mockRejectedValueOnce(err)
       .mockRejectedValueOnce({ response: { status: 403 } });
     await expect(isTenantOrOwner(token)).resolves.toBe(false);
-    expect(spy).toHaveBeenCalledWith("Error checking access:", "oops");
+    expect(spy).toHaveBeenCalledWith(
+      "Error checking access:",
+      "oops"
+    );
     spy.mockRestore();
   });
 
@@ -94,6 +101,8 @@ describe("isTenantOrOwner", () => {
   });
 });
 
+// Tests for sendEmailController
+
 describe("sendEmailController", () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
@@ -102,16 +111,14 @@ describe("sendEmailController", () => {
   beforeEach(() => {
     req = { headers: {}, body: {} };
     res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    spyAccess = jest.spyOn(EmailController, "isTenantOrOwner");
+    spyAccess = jest.spyOn(EmailController, 'isTenantOrOwner');
     jest.clearAllMocks();
   });
 
   it("401 when no token", async () => {
     await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Unauthorized: missing token",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized: missing token" });
   });
 
   it("400 when missing fields", async () => {
@@ -129,9 +136,7 @@ describe("sendEmailController", () => {
     await sendEmailController(req as Request, res as Response);
     expect(spyAccess).toHaveBeenCalledWith("t");
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Forbidden: insufficient rights",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Forbidden: insufficient rights" });
   });
 
   it("succeeds with text only inside try", async () => {
@@ -140,16 +145,8 @@ describe("sendEmailController", () => {
     req.headers = { authorization: "Bearer t" };
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
-    expect(mockedSendEmailService).toHaveBeenCalledWith(
-      "a",
-      "b",
-      "c",
-      undefined,
-    );
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Email sent successfully",
-      messageId: "1",
-    });
+    expect(mockedSendEmailService).toHaveBeenCalledWith("a","b","c",undefined);
+    expect(res.json).toHaveBeenCalledWith({ message: "Email sent successfully", messageId: "1" });
   });
 
   it("succeeds with html inside try", async () => {
@@ -158,16 +155,8 @@ describe("sendEmailController", () => {
     req.headers = { authorization: "Bearer t" };
     req.body = { to: "a", subject: "b", html: "<h>h</h>" };
     await sendEmailController(req as Request, res as Response);
-    expect(mockedSendEmailService).toHaveBeenCalledWith(
-      "a",
-      "b",
-      undefined,
-      "<h>h</h>",
-    );
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Email sent successfully",
-      messageId: "2",
-    });
+    expect(mockedSendEmailService).toHaveBeenCalledWith("a","b",undefined,"<h>h</h>");
+    expect(res.json).toHaveBeenCalledWith({ message: "Email sent successfully", messageId: "2" });
   });
 
   it("handles failure false inside try", async () => {
@@ -177,10 +166,7 @@ describe("sendEmailController", () => {
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Email sending failed",
-      details: "err",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Email sending failed", details: "err" });
   });
 
   it("handles exception inside try", async () => {
@@ -190,9 +176,6 @@ describe("sendEmailController", () => {
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Internal server error",
-      details: "e",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Internal server error", details: "e" });
   });
 });
