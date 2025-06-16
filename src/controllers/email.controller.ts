@@ -1,21 +1,43 @@
 import { Request, Response } from "express";
 import { sendEmailService } from "../services/mailer.service";
-import jwt from "jsonwebtoken";
+import axios from "axios";
 
-export function isTenantOrOwner(token: string): boolean {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      status?: string;
-    };
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
-    return decoded.status === "TENANT" || decoded.status === "OWNER";
-  } catch (error) {
-    console.error("⚠️ Token verification failed:", error);
-    return false;
+export async function isTenantOrOwner(token: string): Promise<boolean> {
+  if (!AUTH_SERVICE_URL) {
+    throw new Error("Missing AUTH_SERVICE_URL environment variable");
   }
+
+  const rightsToCheck = ["TENANT", "OWNER"];
+
+  for (const rightName of rightsToCheck) {
+    try {
+      const response = await axios.post(
+        AUTH_SERVICE_URL,
+        { token, rightName },
+        { headers: { "Content-Type": "application/json" } },
+      );
+
+      if (response.status === 200) {
+        return true;
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status !== 403) {
+          console.error(
+            "Unexpected error during access check:",
+            error.response?.data,
+          );
+        }
+      } else if (error instanceof Error) {
+        console.error("Error checking access:", error.message);
+      }
+    }
+  }
+  return false;
 }
 
-// Controller to handle email sending requests
 export const sendEmailController = async (
   req: Request,
   res: Response,
@@ -33,7 +55,8 @@ export const sendEmailController = async (
     return;
   }
 
-  if (!isTenantOrOwner(userToken)) {
+  const authorized = await isTenantOrOwner(userToken);
+  if (!authorized) {
     res.status(403).json({ error: "Forbidden: insufficient rights" });
     return;
   }

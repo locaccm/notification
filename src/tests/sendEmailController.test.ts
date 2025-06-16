@@ -1,158 +1,176 @@
 import { Request, Response } from "express";
-import { sendEmailController } from "../controllers/email.controller";
+import axios from "axios";
 import { sendEmailService } from "../services/mailer.service";
-import jwt from "jsonwebtoken";
+import { isTenantOrOwner, sendEmailController } from "../controllers/email.controller";
 
+jest.mock("axios");
 jest.mock("../services/mailer.service");
-jest.mock("jsonwebtoken");
+
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedSendEmailService = sendEmailService as jest.MockedFunction<typeof sendEmailService>;
+
+describe("isTenantOrOwner", () => {
+  const token = "test-token";
+  const url = process.env.AUTH_SERVICE_URL;
+
+  beforeEach(() => {
+    mockedAxios.post.mockReset();
+    jest.restoreAllMocks();
+  });
+
+  it("throws if AUTH_SERVICE_URL is missing", async () => {
+    const original = process.env.AUTH_SERVICE_URL;
+    delete process.env.AUTH_SERVICE_URL;
+    await expect(isTenantOrOwner(token)).rejects.toThrow(
+      "Missing AUTH_SERVICE_URL environment variable"
+    );
+    expect(mockedAxios.post).not.toHaveBeenCalled();
+    process.env.AUTH_SERVICE_URL = original;
+  });
+
+  it("returns true if first right succeeds", async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    process.env.AUTH_SERVICE_URL = url;
+    await expect(isTenantOrOwner(token)).resolves.toBe(true);
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      url,
+      { token, rightName: "TENANT" },
+      { headers: { "Content-Type": "application/json" } }
+    );
+  });
+
+  it("tries second right if first returns 403", async () => {
+    mockedAxios.post
+      .mockRejectedValueOnce({ response: { status: 403 } })
+      .mockResolvedValueOnce({ status: 200 });
+    process.env.AUTH_SERVICE_URL = url;
+    await expect(isTenantOrOwner(token)).resolves.toBe(true);
+    expect(mockedAxios.post).toHaveBeenCalledTimes(2);
+    expect(mockedAxios.post).toHaveBeenNthCalledWith(
+      2,
+      url,
+      { token, rightName: "OWNER" },
+      { headers: { "Content-Type": "application/json" } }
+    );
+  });
+
+  it("logs unexpected axios errors not 403", async () => {
+    // simulate axios.isAxiosError
+    jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
+    const axiosError = { response: { status: 500, data: "err-data" } };
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockedAxios.post
+      .mockRejectedValueOnce(axiosError)
+      .mockRejectedValueOnce({ response: { status: 403 } });
+    process.env.AUTH_SERVICE_URL = url;
+    await expect(isTenantOrOwner(token)).resolves.toBe(false);
+    expect(spy).toHaveBeenCalledWith(
+      "Unexpected error during access check:",
+      "err-data"
+    );
+    spy.mockRestore();
+  });
+
+  it("logs non-AxiosError errors", async () => {
+    jest.spyOn(axios, 'isAxiosError').mockReturnValue(false);
+    const err = new Error("oops");
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockedAxios.post
+      .mockRejectedValueOnce(err)
+      .mockRejectedValueOnce({ response: { status: 403 } });
+    process.env.AUTH_SERVICE_URL = url;
+    await expect(isTenantOrOwner(token)).resolves.toBe(false);
+    expect(spy).toHaveBeenCalledWith(
+      "Error checking access:",
+      "oops"
+    );
+    spy.mockRestore();
+  });
+
+  it("returns false if all rights are forbidden", async () => {
+    mockedAxios.post.mockRejectedValue({ response: { status: 403 } });
+    process.env.AUTH_SERVICE_URL = url;
+    await expect(isTenantOrOwner(token)).resolves.toBe(false);
+    expect(mockedAxios.post).toHaveBeenCalledTimes(2);
+  });
+});
 
 describe("sendEmailController", () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
 
   beforeEach(() => {
-    req = {
-      headers: {
-        authorization: "Bearer mock-token",
-      },
-    };
+    req = { headers: {}, body: {} };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
-  });
-
-  afterEach(() => {
+    (isTenantOrOwner as jest.Mock) = jest.fn();
     jest.clearAllMocks();
   });
 
-  it("should return 401 if token is missing", async () => {
-    req.headers = {};
-    req.body = { to: "", subject: "" };
-
+  it("returns 401 if no token", async () => {
     await sendEmailController(req as Request, res as Response);
-
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Unauthorized: missing token",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized: missing token" });
   });
 
-  it("should return 400 if required fields are missing", async () => {
-    req.body = { to: "", subject: "" };
-
-    (jwt.verify as jest.Mock).mockReturnValue({ status: "TENANT" });
-
+  it("returns 400 if missing fields", async () => {
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "", subject: "", text: "" };
     await sendEmailController(req as Request, res as Response);
-
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: "Missing required fields" });
   });
 
-  it("should return 403 if user is not TENANT or OWNER", async () => {
-    req.body = {
-      to: "user@example.com",
-      subject: "Test Email",
-      text: "Body",
-    };
-
-    (jwt.verify as jest.Mock).mockReturnValue({ status: "ADMIN" });
-
+  it("returns 403 if not authorized", async () => {
+    (isTenantOrOwner as jest.Mock).mockResolvedValue(false);
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
-
+    expect(isTenantOrOwner).toHaveBeenCalledWith("token");
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Forbidden: insufficient rights",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Forbidden: insufficient rights" });
   });
 
-  it("should send email successfully and return 200", async () => {
-    req.body = {
-      to: "user@example.com",
-      subject: "Success Email",
-      text: "Email body",
-    };
-
-    (jwt.verify as jest.Mock).mockReturnValue({ status: "OWNER" });
-    (sendEmailService as jest.Mock).mockResolvedValue({
-      success: true,
-      messageId: "email-123",
-    });
-
+  it("sends email and returns success with text", async () => {
+    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockedSendEmailService.mockResolvedValue({ success: true, messageId: "123" });
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
-
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Email sent successfully",
-      messageId: "email-123",
-    });
+    expect(mockedSendEmailService).toHaveBeenCalledWith("a", "b", "c", undefined);
+    expect(res.json).toHaveBeenCalledWith({ message: "Email sent successfully", messageId: "123" });
   });
 
-  it("should return 500 if email service fails", async () => {
-    req.body = {
-      to: "user@example.com",
-      subject: "Failure Email",
-      text: "Content",
-    };
-
-    (jwt.verify as jest.Mock).mockReturnValue({ status: "TENANT" });
-    (sendEmailService as jest.Mock).mockResolvedValue({
-      success: false,
-      error: "SMTP error",
-    });
-
+  it("sends email and returns success with html only", async () => {
+    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockedSendEmailService.mockResolvedValue({ success: true, messageId: "456" });
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "x@x.com", subject: "sub", html: "<p>html</p>" };
     await sendEmailController(req as Request, res as Response);
+    expect(mockedSendEmailService).toHaveBeenCalledWith("x@x.com", "sub", undefined, "<p>html</p>");
+    expect(res.json).toHaveBeenCalledWith({ message: "Email sent successfully", messageId: "456" });
+  });
 
+  it("handles send failure", async () => {
+    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockedSendEmailService.mockResolvedValue({ success: false, error: "fail" });
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "a", subject: "b", text: "c" };
+    await sendEmailController(req as Request, res as Response);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Email sending failed",
-      details: "SMTP error",
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Email sending failed", details: "fail" });
   });
 
-  it("should return 500 if an exception is thrown", async () => {
-    req.body = {
-      to: "user@example.com",
-      subject: "Exception Test",
-      text: "Crash!",
-    };
-
-    (jwt.verify as jest.Mock).mockReturnValue({ status: "OWNER" });
-    (sendEmailService as jest.Mock).mockRejectedValue(
-      new Error("Unexpected failure"),
-    );
-
+  it("handles exceptions and returns 500", async () => {
+    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockedSendEmailService.mockRejectedValue(new Error("boom"));
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
-
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Internal server error",
-      details: "Unexpected failure",
-    });
-  });
-
-  it("should return 403 if jwt.verify throws (invalid token)", async () => {
-    req.body = {
-      to: "user@example.com",
-      subject: "Invalid Token",
-      text: "Invalid",
-    };
-
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    (jwt.verify as jest.Mock).mockImplementation(() => {
-      throw new Error("Token verification failed");
-    });
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "⚠️ Token verification failed:",
-      expect.any(Error),
-    );
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Forbidden: insufficient rights",
-    });
-
-    consoleSpy.mockRestore();
+    expect(res.json).toHaveBeenCalledWith({ error: "Internal server error", details: "boom" });
   });
 });
