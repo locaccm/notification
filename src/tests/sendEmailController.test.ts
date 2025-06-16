@@ -1,3 +1,4 @@
+// Set AUTH_SERVICE_URL before importing the controller module
 process.env.AUTH_SERVICE_URL = "http://auth-service";
 
 import { Request, Response } from "express";
@@ -23,13 +24,14 @@ describe("isTenantOrOwner", () => {
     jest.restoreAllMocks();
   });
 
-  it("throws if AUTH_SERVICE_URL is missing", async () => {
-    delete process.env.AUTH_SERVICE_URL;
-    await expect(isTenantOrOwner(token)).rejects.toThrow(
-      "Missing AUTH_SERVICE_URL environment variable",
-    );
+  it("returns false if AUTH_SERVICE_URL is missing", async () => {
+    // Simulate missing URL constant by monkey-patching module constant
+    (EmailController as any).AUTH_SERVICE_URL = undefined;
+    const result = await isTenantOrOwner(token);
+    expect(result).toBe(false);
     expect(mockedAxios.post).not.toHaveBeenCalled();
-    process.env.AUTH_SERVICE_URL = AUTH_URL;
+    // Restore constant
+    (EmailController as any).AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
   });
 
   it("returns true if first right succeeds", async () => {
