@@ -1,3 +1,5 @@
+process.env.AUTH_SERVICE_URL = "http://auth-service";
+
 import { Request, Response } from "express";
 import axios from "axios";
 import { sendEmailService } from "../services/mailer.service";
@@ -11,15 +13,10 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedSendEmailService = sendEmailService as jest.MockedFunction<
   typeof sendEmailService
 >;
-const AUTH_URL = "http://auth-service";
-process.env.AUTH_SERVICE_URL = AUTH_URL;
 
 describe("isTenantOrOwner", () => {
   const token = "test-token";
-
-  beforeAll(() => {
-    process.env.AUTH_SERVICE_URL = AUTH_URL;
-  });
+  const AUTH_URL = process.env.AUTH_SERVICE_URL!;
 
   beforeEach(() => {
     mockedAxios.post.mockReset();
@@ -107,7 +104,7 @@ describe("sendEmailController", () => {
     };
     mockIsTenantOrOwner = jest.spyOn(EmailController, "isTenantOrOwner");
     jest.clearAllMocks();
-    process.env.AUTH_SERVICE_URL = AUTH_URL;
+    process.env.AUTH_SERVICE_URL = "http://auth-service";
   });
 
   it("returns 401 if no token", async () => {
