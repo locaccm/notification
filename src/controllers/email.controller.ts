@@ -1,21 +1,16 @@
 import { Request, Response } from "express";
 import { sendEmailService } from "../services/mailer.service";
-import axios from "axios";
+import jwt from "jsonwebtoken";
 
-async function hasAccess(token: string, rightName: string): Promise<boolean> {
+export function isTenantOrOwner(token: string): boolean {
   try {
-    const response = await axios.post(process.env.AUTH_SERVICE_URL!, {
-      token,
-      rightName,
-    });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      status?: string;
+    };
 
-    return response.status === 201;
-  } catch (error: any) {
-    if (error.response?.status === 403) {
-      console.warn("❌ Access denied");
-      return false;
-    }
-    console.error("⚠️ Error checking access:", error.message);
+    return decoded.status === "TENANT" || decoded.status === "OWNER";
+  } catch (error) {
+    console.error("⚠️ Token verification failed:", error);
     return false;
   }
 }
@@ -38,8 +33,7 @@ export const sendEmailController = async (
     return;
   }
 
-  const authorized = await hasAccess(userToken, "TENANT");
-  if (!authorized) {
+  if (!isTenantOrOwner(userToken)) {
     res.status(403).json({ error: "Forbidden: insufficient rights" });
     return;
   }
