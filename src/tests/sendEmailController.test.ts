@@ -1,10 +1,8 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { sendEmailService } from "../services/mailer.service";
-import {
-  isTenantOrOwner,
-  sendEmailController,
-} from "../controllers/email.controller";
+import * as EmailController from "../controllers/email.controller";
+const { isTenantOrOwner, sendEmailController } = EmailController;
 
 jest.mock("axios");
 jest.mock("../services/mailer.service");
@@ -14,6 +12,7 @@ const mockedSendEmailService = sendEmailService as jest.MockedFunction<
   typeof sendEmailService
 >;
 const AUTH_URL = "http://auth-service";
+process.env.AUTH_SERVICE_URL = AUTH_URL;
 
 describe("isTenantOrOwner", () => {
   const token = "test-token";
@@ -63,7 +62,7 @@ describe("isTenantOrOwner", () => {
 
   it("logs unexpected axios errors not 403", async () => {
     jest.spyOn(axios, "isAxiosError").mockReturnValue(true);
-    const axiosError = { response: { status: 500, data: "err-data" } };
+    const axiosError = { response: { status: 500, data: "err-data" } } as any;
     const spy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockedAxios.post
       .mockRejectedValueOnce(axiosError)
@@ -98,6 +97,7 @@ describe("isTenantOrOwner", () => {
 describe("sendEmailController", () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
+  let mockIsTenantOrOwner: jest.SpyInstance;
 
   beforeEach(() => {
     req = { headers: {}, body: {} };
@@ -105,8 +105,9 @@ describe("sendEmailController", () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
-    (isTenantOrOwner as jest.Mock) = jest.fn();
+    mockIsTenantOrOwner = jest.spyOn(EmailController, "isTenantOrOwner");
     jest.clearAllMocks();
+    process.env.AUTH_SERVICE_URL = AUTH_URL;
   });
 
   it("returns 401 if no token", async () => {
@@ -126,11 +127,11 @@ describe("sendEmailController", () => {
   });
 
   it("returns 403 if not authorized", async () => {
-    (isTenantOrOwner as jest.Mock).mockResolvedValue(false);
+    mockIsTenantOrOwner.mockResolvedValue(false);
     req.headers = { authorization: "Bearer token" };
     req.body = { to: "a", subject: "b", text: "c" };
     await sendEmailController(req as Request, res as Response);
-    expect(isTenantOrOwner).toHaveBeenCalledWith("token");
+    expect(mockIsTenantOrOwner).toHaveBeenCalledWith("token");
     expect(res.status).toHaveBeenCalledWith(403);
     expect(res.json).toHaveBeenCalledWith({
       error: "Forbidden: insufficient rights",
@@ -138,7 +139,7 @@ describe("sendEmailController", () => {
   });
 
   it("sends email and returns success with text", async () => {
-    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockIsTenantOrOwner.mockResolvedValue(true);
     mockedSendEmailService.mockResolvedValue({
       success: true,
       messageId: "123",
@@ -159,7 +160,7 @@ describe("sendEmailController", () => {
   });
 
   it("sends email and returns success with html only", async () => {
-    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockIsTenantOrOwner.mockResolvedValue(true);
     mockedSendEmailService.mockResolvedValue({
       success: true,
       messageId: "456",
@@ -180,7 +181,7 @@ describe("sendEmailController", () => {
   });
 
   it("handles send failure", async () => {
-    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockIsTenantOrOwner.mockResolvedValue(true);
     mockedSendEmailService.mockResolvedValue({ success: false, error: "fail" });
     req.headers = { authorization: "Bearer token" };
     req.body = { to: "a", subject: "b", text: "c" };
@@ -193,7 +194,7 @@ describe("sendEmailController", () => {
   });
 
   it("handles exceptions and returns 500", async () => {
-    (isTenantOrOwner as jest.Mock).mockResolvedValue(true);
+    mockIsTenantOrOwner.mockResolvedValue(true);
     mockedSendEmailService.mockRejectedValue(new Error("boom"));
     req.headers = { authorization: "Bearer token" };
     req.body = { to: "a", subject: "b", text: "c" };
