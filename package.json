@@ -1,6 +1,5 @@
 {
   "scripts": {
-    "db:pull": "npx prisma db pull",
     "prisma:generate": "npx prisma generate --schema=prisma/schema.prisma",
     "test": "npm run prisma:generate && jest --coverage --coverageReporters=lcov",
     "start": "npm run prisma:generate && node dist/start.js",
