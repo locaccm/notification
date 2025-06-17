@@ -33,19 +33,23 @@ export function addRemindersForTenant(tenant: Tenant): string[] {
   const results: string[] = [];
 
   tenant.leases.forEach((lease) => {
-    const paymentReminderDate = new Date(lease.LEAD_PAYMENT.getTime());
-    const paymentReminder = createReminder(
-      `Payment reminder for ${tenant.USEC_MAIL}`,
-      paymentReminderDate,
-    );
-    if (paymentReminder) results.push(paymentReminder);
+    if (lease.LEAD_PAYMENT) {
+      const paymentReminderDate = new Date(lease.LEAD_PAYMENT.getTime());
+      const paymentReminder = createReminder(
+        `Payment reminder for ${tenant.USEC_MAIL}`,
+        paymentReminderDate,
+      );
+      if (paymentReminder) results.push(paymentReminder);
+    }
 
-    const leaseEndReminderDate = new Date(lease.LEAD_END.getTime());
-    const leaseEndReminder = createReminder(
-      `Lease end reminder for ${tenant.USEC_MAIL}`,
-      leaseEndReminderDate,
-    );
-    if (leaseEndReminder) results.push(leaseEndReminder);
+    if (lease.LEAD_END) {
+      const leaseEndReminderDate = new Date(lease.LEAD_END.getTime());
+      const leaseEndReminder = createReminder(
+        `Lease end reminder for ${tenant.USEC_MAIL}`,
+        leaseEndReminderDate,
+      );
+      if (leaseEndReminder) results.push(leaseEndReminder);
+    }
   });
 
   return results;
@@ -58,12 +62,14 @@ export function addRemindersForEvents(tenant: Tenant): string[] {
   if (!tenant.events) return results;
 
   tenant.events.forEach((event) => {
-    const reminderDate = new Date(event.EVED_START.getTime());
-    const eventReminder = createReminder(
-      `Event ${event.EVEC_LIB} for ${tenant.USEC_MAIL}`,
-      reminderDate,
-    );
-    if (eventReminder) results.push(eventReminder);
+    if (event.EVED_START) {
+      const reminderDate = new Date(event.EVED_START.getTime());
+      const eventReminder = createReminder(
+        `Event ${event.EVEC_LIB} for ${tenant.USEC_MAIL}`,
+        reminderDate,
+      );
+      if (eventReminder) results.push(eventReminder);
+    }
   });
 
   return results;

@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-# 1. Environment variable
+# 1. Set environment variables from build arguments
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
@@ -22,29 +22,32 @@ ENV MAIL_PASS=${MAIL_PASS}
 ARG CORS_ORIGIN
 ENV CORS_ORIGIN=${CORS_ORIGIN}
 
-# 2. Set working directory
+# 2. Set working directory inside the container
 WORKDIR /app
 
-# 3. Install git if needed — remove if not using it
+# 3. Install git (only needed if your project requires it)
 RUN apk add --no-cache git
 
 # 4. Copy dependency files
 COPY package*.json ./
 
-# 5. Install dependencies
+# 5. Install npm dependencies
 RUN npm install
 
-# 6. Copy the rest of the app source code
+# 6. Copy the rest of the application source code
 COPY . .
 
-# 7. Generate Prisma client
+# 7. Pull the database schema with Prisma
+RUN npx prisma db pull
+
+# 8. Generate Prisma client
 RUN npm run prisma:generate
 
-# 8. Build the app
+# 9. Build the app
 RUN npm run build
 
-# 9. Expose port
+# 10. Expose port 3000 for the app
 EXPOSE 3000
 
-# 10. Start the app
+# 11. Start the application
 CMD ["npm", "start"]
