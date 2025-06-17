@@ -204,4 +204,23 @@ describe("sendEmailController", () => {
       details: "e",
     });
   });
+
+  it("returns success when sendEmailService returns success", async () => {
+    spyAccess.mockResolvedValue(true);
+    mockedSendEmailService.mockResolvedValue({
+      success: true,
+      messageId: "12345",
+    });
+
+    req.headers = { authorization: "Bearer token" };
+    req.body = { to: "user@example.com", subject: "Test", text: "Hello!" };
+
+    await sendEmailController(req as Request, res as Response);
+
+    expect(mockedSendEmailService).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Email sent successfully",
+      messageId: "12345",
+    });
+  });
 });
