@@ -10,33 +10,27 @@ export async function hasAccess(token: string): Promise<boolean> {
     return false;
   }
 
-  const rightsToCheck = ["TENANT", "OWNER"];
+  try {
+    const response = await axios.post(
+      AUTH_SERVICE_URL,
+      { token, rightName: "createSmtpServer" },
+      { headers: { "Content-Type": "application/json" } },
+    );
 
-  for (const rightName of rightsToCheck) {
-    try {
-      const response = await axios.post(
-        AUTH_SERVICE_URL,
-        { token, rightName },
-        { headers: { "Content-Type": "application/json" } },
-      );
-
-      if (response.status === 200) {
-        return true;
+    return response.status === 200;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status !== 403) {
+        console.error(
+          "Unexpected error during access check:",
+          error.response?.data,
+        );
       }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status !== 403) {
-          console.error(
-            "Unexpected error during access check:",
-            error.response?.data,
-          );
-        }
-      } else if (error instanceof Error) {
-        console.error("Error checking access:", error.message);
-      }
+    } else if (error instanceof Error) {
+      console.error("Error checking access:", error.message);
     }
+    return false;
   }
-  return false;
 }
 
 export const sendEmailController = async (
