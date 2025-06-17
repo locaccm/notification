@@ -30,7 +30,7 @@ describe("isTenantOrOwner", () => {
     jest.resetModules();
     delete process.env.AUTH_SERVICE_URL;
     const FreshController = require("../controllers/email.controller");
-    const result = await FreshController.isTenantOrOwner(token);
+    const result = await FreshController.hasAccess(token);
     expect(result).toBe(false);
     expect(mockedAxios.post).not.toHaveBeenCalled();
     process.env.AUTH_SERVICE_URL = AUTH_URL;
@@ -38,7 +38,7 @@ describe("isTenantOrOwner", () => {
 
   it("returns true when TENANT check succeeds", async () => {
     mockedAxios.post.mockResolvedValue({ status: 200 });
-    const result = await EmailController.isTenantOrOwner(token);
+    const result = await EmailController.hasAccess(token);
     expect(result).toBe(true);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       AUTH_URL,
@@ -52,7 +52,7 @@ describe("isTenantOrOwner", () => {
       .mockRejectedValueOnce({ response: { status: 403 } })
       .mockResolvedValueOnce({ status: 200 });
 
-    const result = await EmailController.isTenantOrOwner(token);
+    const result = await EmailController.hasAccess(token);
     expect(result).toBe(true);
     expect(mockedAxios.post).toHaveBeenCalledTimes(2);
     expect(mockedAxios.post).toHaveBeenNthCalledWith(
@@ -72,7 +72,7 @@ describe("isTenantOrOwner", () => {
       .mockRejectedValueOnce(error)
       .mockRejectedValueOnce({ response: { status: 403 } });
 
-    const result = await EmailController.isTenantOrOwner(token);
+    const result = await EmailController.hasAccess(token);
     expect(result).toBe(false);
     expect(spy).toHaveBeenCalledWith(
       "Unexpected error during access check:",
@@ -89,7 +89,7 @@ describe("isTenantOrOwner", () => {
       .mockRejectedValueOnce(error)
       .mockRejectedValueOnce({ response: { status: 403 } });
 
-    const result = await EmailController.isTenantOrOwner(token);
+    const result = await EmailController.hasAccess(token);
     expect(result).toBe(false);
     expect(spy).toHaveBeenCalledWith(
       "Error checking access:",
@@ -100,7 +100,7 @@ describe("isTenantOrOwner", () => {
   it("returns false if both TENANT and OWNER forbidden", async () => {
     mockedAxios.post.mockRejectedValue({ response: { status: 403 } });
 
-    const result = await EmailController.isTenantOrOwner(token);
+    const result = await EmailController.hasAccess(token);
     expect(result).toBe(false);
     expect(mockedAxios.post).toHaveBeenCalledTimes(2);
   });

@@ -4,7 +4,7 @@ import axios from "axios";
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
-export async function isTenantOrOwner(token: string): Promise<boolean> {
+export async function hasAccess(token: string): Promise<boolean> {
   if (!AUTH_SERVICE_URL) {
     console.error("AUTH_SERVICE_URL is not defined");
     return false;
@@ -56,7 +56,7 @@ export const sendEmailController = async (
     return;
   }
 
-  const authorized = await isTenantOrOwner(userToken);
+  const authorized = await hasAccess(userToken);
   if (!authorized) {
     res.status(403).json({ error: "Forbidden: insufficient rights" });
     return;
