@@ -7,8 +7,10 @@ import { Tenant } from "../interfaces/tenant.interface";
 export async function sendReminders(reminders: string[], tenant: Tenant) {
   const to = tenant.USEC_MAIL;
   if (!to) {
-    console.warn(`Skipping reminders for tenant ${tenant.USEN_ID} because email is null or empty`);
-    return; 
+    console.warn(
+      `Skipping reminders for tenant ${tenant.USEN_ID} because email is null or empty`,
+    );
+    return;
   }
 
   for (const reminder of reminders) {

@@ -1,11 +1,11 @@
 import { Tenant } from "./interfaces/tenant.interface";
 import { prisma } from "./lib/prisma.lib";
 
-function nonNullString(value: string | null): string {
+export function nonNullString(value: string | null): string {
   return value ?? "";
 }
 
-function nonNullDate(value: Date | null): Date {
+export function nonNullDate(value: Date | null): Date {
   return value ?? new Date(0);
 }
 
