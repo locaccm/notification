@@ -57,4 +57,24 @@ describe("Sends formatted email reminders to the tenant for each provided remind
     expect(generateEmailTemplate).not.toHaveBeenCalled();
     expect(sendEmailService).not.toHaveBeenCalled();
   });
+
+  it("should skip sending reminders and warn if tenant email is null or empty", async () => {
+    const tenantWithNoEmail: Tenant = {
+      ...tenant,
+      USEC_MAIL: "", 
+    };
+    const reminders = ["Reminder 1", "Reminder 2"];
+
+    const warnMock = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    await sendReminders(reminders, tenantWithNoEmail);
+
+    expect(generateEmailTemplate).not.toHaveBeenCalled();
+    expect(sendEmailService).not.toHaveBeenCalled();
+    expect(warnMock).toHaveBeenCalledWith(
+      `Skipping reminders for tenant ${tenantWithNoEmail.USEN_ID} because email is null or empty`
+    );
+
+    warnMock.mockRestore();
+  });
 });
