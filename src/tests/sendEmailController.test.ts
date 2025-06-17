@@ -1,7 +1,6 @@
 // Set AUTH_SERVICE_URL before importing the controller module
 process.env.AUTH_SERVICE_URL = "http://auth-service";
 
-import { Request, Response } from "express";
 import axios from "axios";
 import { sendEmailService } from "../services/mailer.service";
 import * as EmailController from "../controllers/email.controller";
@@ -11,9 +10,7 @@ jest.mock("axios");
 jest.mock("../services/mailer.service");
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
-const mockedSendEmailService = sendEmailService as jest.MockedFunction<
-  typeof sendEmailService
->;
+sendEmailService as jest.MockedFunction<typeof sendEmailService>;
 
 // Silence console.error globally in test
 jest.spyOn(console, "error").mockImplementation(() => {});
@@ -108,106 +105,3 @@ describe("isTenantOrOwner", () => {
     expect(mockedAxios.post).toHaveBeenCalledTimes(2);
   });
 });
-/*
-// Tests for sendEmailController
-describe("sendEmailController", () => {
-  let req: Partial<Request>;
-  let res: Partial<Response>;
-  let spyAccess: jest.SpyInstance;
-
-  beforeEach(() => {
-    req = { headers: {}, body: {} };
-    res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    spyAccess = jest.spyOn(EmailController, "isTenantOrOwner");
-    jest.clearAllMocks();
-  });
-
-  it("401 when no token", async () => {
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Unauthorized: missing token",
-    });
-  });
-
-  it("400 when missing required fields", async () => {
-    req.headers = { authorization: "Bearer t" };
-    req.body = { to: "", subject: "", text: "" };
-
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: "Missing required fields" });
-  });
-
-  it("403 when not authorized", async () => {
-    spyAccess.mockResolvedValue(false);
-    req.headers = { authorization: "Bearer t" };
-    req.body = { to: "a", subject: "b", text: "c" };
-
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Forbidden: insufficient rights",
-    });
-  });
-
-  it("200 success with text email", async () => {
-    spyAccess.mockResolvedValue(true);
-    mockedSendEmailService.mockResolvedValue({ success: true, messageId: "1" });
-
-    req.headers = { authorization: "Bearer t" };
-    req.body = { to: "a", subject: "b", text: "c" };
-
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(mockedSendEmailService).toHaveBeenCalledWith("a", "b", "c", undefined);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Email sent successfully",
-      messageId: "1",
-    });
-  });
-
-  it("200 success with html email", async () => {
-    spyAccess.mockResolvedValue(true);
-    mockedSendEmailService.mockResolvedValue({ success: true, messageId: "2" });
-
-    req.headers = { authorization: "Bearer t" };
-    req.body = { to: "a", subject: "b", html: "<h>html</h>" };
-
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(mockedSendEmailService).toHaveBeenCalledWith("a", "b", undefined, "<h>html</h>");
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Email sent successfully",
-      messageId: "2",
-    });
-  });
-
-  it("500 when sendEmailService returns failure", async () => {
-    spyAccess.mockResolvedValue(true);
-    mockedSendEmailService.mockResolvedValue({ success: false, error: "err" });
-
-    req.headers = { authorization: "Bearer t" };
-    req.body = { to: "a", subject: "b", text: "c" };
-
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Email sending failed",
-      details: "err",
-    });
-  });
-
-  it("500 on exception thrown by sendEmailService", async () => {
-    spyAccess.mockResolvedValue(true);
-    mockedSendEmailService.mockRejectedValue(new Error("e"));
-
-    req.headers = { authorization: "Bearer t" };
-    req.body = { to: "a", subject: "b", text: "c" };
-
-    await EmailController.sendEmailController(req as Request, res as Response);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Internal server error",
-      details: "e",
-    });
-  });
-});*/
