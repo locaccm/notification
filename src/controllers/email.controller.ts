@@ -2,25 +2,37 @@ import { Request, Response } from "express";
 import { sendEmailService } from "../services/mailer.service";
 import axios from "axios";
 
-async function hasAccess(token: string, rightName: string): Promise<boolean> {
-  try {
-    const response = await axios.post(process.env.AUTH_SERVICE_URL!, {
-      token,
-      rightName,
-    });
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
-    return response.status === 201;
-  } catch (error: any) {
-    if (error.response?.status === 403) {
-      console.warn("❌ Access denied");
-      return false;
+export async function hasAccess(token: string): Promise<boolean> {
+  if (!AUTH_SERVICE_URL) {
+    console.error("AUTH_SERVICE_URL is not defined");
+    return false;
+  }
+
+  try {
+    const response = await axios.post(
+      AUTH_SERVICE_URL,
+      { token, rightName: "createSmtpServer" },
+      { headers: { "Content-Type": "application/json" } },
+    );
+
+    return response.status === 200;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status !== 403) {
+        console.error(
+          "Unexpected error during access check:",
+          error.response?.data,
+        );
+      }
+    } else if (error instanceof Error) {
+      console.error("Error checking access:", error.message);
     }
-    console.error("⚠️ Error checking access:", error.message);
     return false;
   }
 }
 
-// Controller to handle email sending requests
 export const sendEmailController = async (
   req: Request,
   res: Response,
@@ -38,7 +50,7 @@ export const sendEmailController = async (
     return;
   }
 
-  const authorized = await hasAccess(userToken, "TENANT");
+  const authorized = await hasAccess(userToken);
   if (!authorized) {
     res.status(403).json({ error: "Forbidden: insufficient rights" });
     return;

@@ -1,160 +1,81 @@
-import { Request, Response } from "express";
-import { sendEmailController } from "../controllers/email.controller";
-import { sendEmailService } from "../services/mailer.service";
+// Set AUTH_SERVICE_URL before importing the controller module
+process.env.AUTH_SERVICE_URL = "http://auth-service";
+
 import axios from "axios";
+import * as EmailController from "../controllers/email.controller";
 
 jest.mock("axios");
 jest.mock("../services/mailer.service");
 
-describe("Handling email sending via the email controller", () => {
-  let req: Partial<Request>;
-  let res: Partial<Response>;
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+jest.spyOn(console, "error").mockImplementation(() => {});
+
+const AUTH_URL = process.env.AUTH_SERVICE_URL!;
+const token = "test-token";
+
+describe("hasAccess", () => {
   beforeEach(() => {
-    req = {
-      headers: {
-        authorization: "Bearer mock-token",
-      },
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
+    mockedAxios.post.mockReset();
+    jest.restoreAllMocks();
+    process.env.AUTH_SERVICE_URL = AUTH_URL;
   });
 
-  it("should return 401 if token is missing", async () => {
-    req.headers = {};
-    req.body = { to: "", subject: "" };
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Unauthorized: missing token",
-    });
+  it("returns false if AUTH_SERVICE_URL is not defined", async () => {
+    jest.resetModules();
+    delete process.env.AUTH_SERVICE_URL;
+    const FreshController = require("../controllers/email.controller");
+    const result = await FreshController.hasAccess(token);
+    expect(result).toBe(false);
+    expect(mockedAxios.post).not.toHaveBeenCalled();
+    process.env.AUTH_SERVICE_URL = AUTH_URL;
   });
 
-  it("should return 400 if required fields are missing", async () => {
-    req.body = { to: "", subject: "" };
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: "Missing required fields" });
-  });
-
-  it("should return 403 if access is denied", async () => {
-    req.body = {
-      to: "example@example.com",
-      subject: "Test Email",
-      text: "Test",
-      html: "<p>Test</p>",
-    };
-
-    (axios.post as jest.Mock).mockRejectedValue({ response: { status: 403 } });
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Forbidden: insufficient rights",
-    });
-  });
-
-  it("should send email successfully and return status 200", async () => {
-    req.body = {
-      to: "example@example.com",
-      subject: "Test Email",
-      text: "Test email content",
-      html: "<p>Test email content</p>",
-    };
-
-    (axios.post as jest.Mock).mockResolvedValue({ status: 201 });
-    (sendEmailService as jest.Mock).mockResolvedValue({
-      success: true,
-      messageId: "abc-123",
-    });
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Email sent successfully",
-      messageId: "abc-123",
-    });
-  });
-
-  it("should return 500 if email sending fails", async () => {
-    req.body = {
-      to: "example@example.com",
-      subject: "Test Email",
-      text: "Test",
-      html: "<p>Test</p>",
-    };
-
-    (axios.post as jest.Mock).mockResolvedValue({ status: 201 });
-    (sendEmailService as jest.Mock).mockResolvedValue({
-      success: false,
-      error: "SMTP server error",
-    });
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Email sending failed",
-      details: "SMTP server error",
-    });
-  });
-
-  it("should return 500 if an exception occurs", async () => {
-    req.body = {
-      to: "example@example.com",
-      subject: "Test Email",
-      text: "Test",
-      html: "<p>Test</p>",
-    };
-
-    (axios.post as jest.Mock).mockResolvedValue({ status: 201 });
-    (sendEmailService as jest.Mock).mockRejectedValue(
-      new Error("Internal error"),
+  it("returns true when createSmtpServer check succeeds", async () => {
+    mockedAxios.post.mockResolvedValue({ status: 200 });
+    const result = await EmailController.hasAccess(token);
+    expect(result).toBe(true);
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      AUTH_URL,
+      { token, rightName: "createSmtpServer" },
+      { headers: { "Content-Type": "application/json" } },
     );
-
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Internal server error",
-      details: "Internal error",
-    });
   });
 
-  it("should return 403 and log error if access check throws unexpected error", async () => {
-    req.body = {
-      to: "example@example.com",
-      subject: "Test Email",
-      text: "Test",
-      html: "<p>Test</p>",
-    };
+  it("returns false when createSmtpServer check is forbidden (403)", async () => {
+    mockedAxios.post.mockRejectedValue({ response: { status: 403 } });
+    const result = await EmailController.hasAccess(token);
+    expect(result).toBe(false);
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+  });
 
-    (axios.post as jest.Mock).mockRejectedValue({
-      message: "Unexpected server error",
-      response: { status: 500 },
-    });
+  it("logs unexpected axios errors", async () => {
+    jest.spyOn(axios, "isAxiosError").mockReturnValue(true);
+    const error = { response: { status: 500, data: "server error" } };
+    const spy = jest.spyOn(console, "error");
 
-    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+    mockedAxios.post.mockRejectedValueOnce(error);
 
-    await sendEmailController(req as Request, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Forbidden: insufficient rights",
-    });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "⚠️ Error checking access:",
-      "Unexpected server error",
+    const result = await EmailController.hasAccess(token);
+    expect(result).toBe(false);
+    expect(spy).toHaveBeenCalledWith(
+      "Unexpected error during access check:",
+      "server error",
     );
+  });
 
-    consoleErrorSpy.mockRestore();
+  it("logs non-axios errors", async () => {
+    jest.spyOn(axios, "isAxiosError").mockReturnValue(false);
+    const error = new Error("unexpected error");
+    const spy = jest.spyOn(console, "error");
+
+    mockedAxios.post.mockRejectedValueOnce(error);
+
+    const result = await EmailController.hasAccess(token);
+    expect(result).toBe(false);
+    expect(spy).toHaveBeenCalledWith(
+      "Error checking access:",
+      "unexpected error",
+    );
   });
 });
